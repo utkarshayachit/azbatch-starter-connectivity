@@ -1,0 +1,260 @@
+{
+    /// This configuration file is intended to provide information about the hub network and resources, if any.
+    /// The default version of this file simply documents the structure of the file and is suitable for standalone
+    /// deployments, i.e. deployments without a hub. The hub deployment typically will generate a similar config file
+    /// which can be directly passed as parameters to the deployment to be used insted of this default version.
+
+    // /// "diagnostics" is the configuration for the diagnostic logs and metrics.
+    // "diagnostics": {
+
+    //     /// if "logAnalyticsWorkspace" is specified, diagnostic logs will be sent to the workspace.
+    //     "logAnalyticsWorkspace": {
+
+    //         /// log analytics workspace id
+    //         "id": null
+    //     },
+
+    //     /// Application Insights is used to collect metrics and logs from the application.
+    //     "appInsights": {
+    //         "appId": null,
+    //         "instrumentationKey": null
+    //     }
+    // },
+
+    /// "networkHub" is the configuration for the hub network.
+    
+    
+    "networkSecurityGroups": {
+
+        "bastion": [
+            
+            {
+                "name": "bastion-in-allow",
+                "properties": {
+                    "protocol": "Tcp",
+                    "sourcePortRange": "*",
+                    "sourceAddressPrefix": "Internet",
+                    "destinationPortRange": "443",
+                    "destinationAddressPrefix": "*",
+                    "access": "Allow",
+                    "priority": 100,
+                    "direction": "Inbound"
+                }
+            },
+
+            {
+                "name": "bastion-control-in-allow",
+                "properties": {
+                    "protocol": "Tcp",
+                    "sourcePortRange": "*",
+                    "sourceAddressPrefix": "GatewayManager",
+                    "destinationPortRange": "443",
+                    "destinationAddressPrefix": "*",
+                    "access": "Allow",
+                    "priority": 120,
+                    "direction": "Inbound"
+                }
+            },
+            
+            {
+                "name": "bastion-in-host",
+                "properties": {
+                    "protocol": "*",
+                    "sourcePortRange": "*",
+                    "destinationPortRanges": [
+                        "8080",
+                        "5701"
+                    ],
+                    "sourceAddressPrefix": "VirtualNetwork",
+                    "destinationAddressPrefix": "VirtualNetwork",
+                    "access": "Allow",
+                    "priority": 130,
+                    "direction": "Inbound"
+                }
+              },
+
+              {
+                "name": "bastion-vnet-out-allow",
+                "properties": {
+                    "protocol": "Tcp",
+                    "sourcePortRange": "*",
+                    "sourceAddressPrefix": "*",
+                    "destinationPortRanges": [
+                        "22",
+                        "3389"
+                    ],
+                    "destinationAddressPrefix": "VirtualNetwork",
+                    "access": "Allow",
+                    "priority": 100,
+                    "direction": "Outbound"
+                }
+              },
+
+              {
+                "name": "bastion-azure-out-allow",
+                "properties": {
+                    "protocol": "Tcp",
+                    "sourcePortRange": "*",
+                    "sourceAddressPrefix": "*",
+                    "destinationPortRange": "443",
+                    "destinationAddressPrefix": "AzureCloud",
+                    "access": "Allow",
+                    "priority": 120,
+                    "direction": "Outbound"
+                }
+              },
+
+              {
+                "name": "bastion-out-host",
+                "properties": {
+                    "protocol": "*",
+                    "sourcePortRange": "*",
+                    "destinationPortRanges": [
+                        "8080",
+                        "5701"
+                    ],
+                    "sourceAddressPrefix": "VirtualNetwork",
+                    "destinationAddressPrefix": "VirtualNetwork",
+                    "access": "Allow",
+                    "priority": 130,
+                    "direction": "Outbound"
+                }
+              },
+
+              {
+                "name": "bastion-out-deny",
+                "properties": {
+                    "protocol": "*",
+                    "sourcePortRange": "*",
+                    "destinationPortRange": "*",
+                    "sourceAddressPrefix": "*",
+                    "destinationAddressPrefix": "*",
+                    "access": "Deny",
+                    "priority": 1000,
+                    "direction": "Outbound"
+                }
+              }
+
+        ],
+       
+        "jumpbox": [
+            
+            {
+                "name": "bastion-in-vnet",
+                "properties": {
+                    "protocol": "Tcp",
+                    "sourcePortRange": "*",
+                    "sourceAddressPrefix":  "10.1.3.0/24",
+                    "destinationPortRanges": [
+                        "22",
+                        "3389"
+                    ],
+                    "destinationAddressPrefix": "*",
+                    "access": "Allow",
+                    "priority": 100,
+                    "direction": "Inbound"
+                }
+            },
+
+
+            {
+                "name": "DenyAllInBound",
+                "properties": {
+                    "protocol": "Tcp",
+                    "sourcePortRange": "*",
+                    "sourceAddressPrefix": "*",
+                    "destinationPortRange": "443",
+                    "destinationAddressPrefix": "*",
+                    "access": "Deny",
+                    "priority": 1000,
+                    "direction": "Inbound"
+                }
+              }
+        ]
+        
+    },
+    
+    "networkRoutes": {
+        
+        "jumpbox": [
+
+            {
+                "name": "DefaultRoute",
+                "properties": {
+                    "addressPrefix": "0.0.0.0/0",
+                    "nextHopType": "VirtualAppliance",
+                    "nextHopIpAddress": "10.1.2.4" //  first available IP of the FW in Firewall Subnet
+                }
+            }
+
+        ]
+
+    },    
+
+    "hubNetwork": {
+
+        /// Configuration object for Hub virtual network object - convention following the guide 
+        /// https://github.com/Azure/ResourceModules/tree/main/modules/Microsoft.Network/virtualNetworks
+        
+        /// Required parameters
+          "addressPrefixes": {
+            "value": [
+              "10.1.0.0/16"
+            ]
+          },
+
+          "subnets": {
+            
+            "value": [
+                
+                // Gateway Subnet
+
+                {
+                    "addressPrefix": "10.1.1.0/24",
+                    "name": "GatewaySubnet",
+                    "privateEndpointNetworkPolicies": "Enabled",
+                    "privateLinkServiceNetworkPolicies": "Enabled",
+                    "enabled": true
+                },
+
+                // (Azure) Firewall Subnet
+
+                {
+                    "addressPrefix": "10.1.2.0/24",
+                    "name": "AzureFirewallSubnet",
+                    "privateEndpointNetworkPolicies": "Enabled",
+                    "privateLinkServiceNetworkPolicies": "Enabled",
+                    "enabled": true
+                },
+
+
+                // Azure Bastion Subnet
+
+                {
+                    "addressPrefix": "10.1.3.0/24",
+                    "name": "AzureBastionSubnet",
+                    "privateEndpointNetworkPolicies": "Enabled",
+                    "privateLinkServiceNetworkPolicies": "Enabled",
+                    "networkSecurityGroupId": "--nsg-bastion--", // will be replaced wit the id during runtime
+                    "enabled": true
+                },
+
+
+                // Jumpbox Subnet
+
+                {
+                    "addressPrefix": "10.1.4.0/24",
+                    "name": "sn-jumpbox",
+                    "privateEndpointNetworkPolicies": "Enabled",
+                    "privateLinkServiceNetworkPolicies": "Enabled",
+                    "networkSecurityGroupId": "--nsg-jumpbox--", // will be replaced wit the id during runtime
+                    "routeTableId":  "--rt-jumpbox--",         // will be replaced wit the id during runtime
+                    "enabled": false
+                }
+
+            ]
+
+        }
+    } 
+        
+}
