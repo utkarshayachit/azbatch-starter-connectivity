@@ -26,6 +26,18 @@ param tags object = {}
 @description('when true, all resources will be deployed under a single resource-group')
 param useSingleResourceGroup bool = false
 
+@description('Optional. Service Tier: PerGB2018, Free, Standalone, PerGB or PerNode.')
+@allowed([
+  'Free'
+  'Standalone'
+  'PerNode'
+  'PerGB2018'
+])
+param serviceTier string = 'PerGB2018'
+
+@description('when true, an Azure Firewall will be deployed')
+param deployAzureFirewall bool = false
+
 @description('hub configuration')
 param hubConfig object = loadJsonContent('config/hub.jsonc')
 
@@ -88,6 +100,46 @@ resource resourceGroups 'Microsoft.Resources/resourceGroups@2021-04-01' = [for n
   location: location
   tags: allTags
 }]
+
+//------------------------------------------------------------------------------
+// Deploy Log Analytics Workslpace resources
+
+@description('Deploy Log Analytics Workspace')
+module logAnalyticsWorkspace './modules/Microsoft.OperationalInsights/workspaces/deploy.bicep' = {
+  scope: resourceGroup(resourceGroupNames.networkHubRG.name)
+  name: '${dplPrefix}-logAnalytics'
+  params: {
+    name: 'log-${dplPrefix}'
+    location: location
+    tags: allTags
+    serviceTier: serviceTier
+  }
+  dependsOn: [
+    // this is necessary to ensure all resource groups have been deployed
+    // before we attempt to deploy resources under those resource groups.
+    resourceGroups
+  ]
+}
+
+//------------------------------------------------------------------------------
+// Deploy Applicaton Insights resources
+
+@description('Deploy Application Insights Components')
+module appInsights './modules/Microsoft.Insights/components/deploy.bicep' = {
+  scope: resourceGroup(resourceGroupNames.networkHubRG.name)
+  name: '${dplPrefix}-appInsights'
+  params: {
+    name: 'appi-${dplPrefix}'
+    workspaceResourceId: logAnalyticsWorkspace.outputs.resourceId
+    location: location
+    tags: allTags
+  }
+  dependsOn: [
+    // this is necessary to ensure all resource groups have been deployed
+    // before we attempt to deploy resources under those resource groups.
+    resourceGroups
+  ]
+}
 
 
 //To-Do: How to verify if .bastion rule is part of the NSG config object?
@@ -187,7 +239,7 @@ var transformedHubConfig = json(txtHubConfig_rt_jumpbox)
 var hubSubnets = transformedHubConfig.hubNetwork.subnets.value
 
 // above has to be rewritten - task - how to inject the nsg and rt ids into the config json object?
-// did not find a function which would transform a json object back to a string
+// did not find a function which would transform a json object back to a string (but it is already late :-)
 
 @description('Deploy Hub virtual network incl. subnets')
 module hubVnet './modules/Microsoft.Network/virtualNetworks/deploy.bicep' = {
