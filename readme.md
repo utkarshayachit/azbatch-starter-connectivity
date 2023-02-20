@@ -15,7 +15,7 @@ Already Deployed:
 
 Currently Working On 
 
-- VPN Gateway depoloyment
+- private DNS Zone (link to Hub Vnet)
 
 
 - How to configure (static) RT on VHUB towards the FW private IP? But only, if AzFW has to be deployed? - currently part of the .jsonc file
@@ -27,7 +27,7 @@ Known Issues:
 
 Open
 
-- private DNS Zone (link to Hub Vnet)
+
 - Propagate diagonstic settings
 
 
