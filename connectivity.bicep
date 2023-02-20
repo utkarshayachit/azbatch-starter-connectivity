@@ -38,6 +38,9 @@ param serviceTier string = 'PerGB2018'
 @description('when true, an Azure Firewall will be deployed')
 param deployAzureFirewall bool = true
 
+@description('when true, an Azure Bastion will be deployed')
+param deployAzureBastion bool = true
+
 @description('hub configuration')
 param hubConfig object = loadJsonContent('config/hub.jsonc')
 
@@ -112,7 +115,7 @@ module logAnalyticsWorkspace './modules/Microsoft.OperationalInsights/workspaces
   scope: resourceGroup(resourceGroupNames.networkHubRG.name)
   name: '${dplPrefix}-logAnalytics'
   params: {
-    name: 'log-${dplPrefix}'
+    name: 'log-${rsPrefix}'
     location: location
     tags: allTags
     serviceTier: serviceTier
@@ -132,7 +135,7 @@ module appInsights './modules/Microsoft.Insights/components/deploy.bicep' = {
   scope: resourceGroup(resourceGroupNames.networkHubRG.name)
   name: '${dplPrefix}-appInsights'
   params: {
-    name: 'appi-${dplPrefix}'
+    name: 'appi-${rsPrefix}'
     workspaceResourceId: logAnalyticsWorkspace.outputs.resourceId
     location: location
     tags: allTags
@@ -157,7 +160,7 @@ module hubNSGbastion './modules/Microsoft.Network/networkSecurityGroups/deploy.b
   scope: resourceGroup(resourceGroupNames.networkHubRG.name)
   name: '${dplPrefix}-hub-network-nsg-bastion'
   params: {
-    name: 'nsg-${dplPrefix}-bastion'
+    name: 'nsg-${rsPrefix}-bastion'
     location: location
     tags: allTags
     securityRules: contains(hubConfig, 'networkSecurityGroups') ? hubConfig.networkSecurityGroups.bastion : {}
@@ -169,12 +172,12 @@ module hubNSGbastion './modules/Microsoft.Network/networkSecurityGroups/deploy.b
   ]
 }
 
-@description('Deploy Hub Bastion NSG')
+@description('Deploy Jumpbox NSG')
 module hubNSGjumpbox './modules/Microsoft.Network/networkSecurityGroups/deploy.bicep' = {
   scope: resourceGroup(resourceGroupNames.networkHubRG.name)
   name: '${dplPrefix}-hub-network-nsg-jumpbox'
   params: {
-    name: 'nsg-${dplPrefix}-jumpbox'
+    name: 'nsg-${rsPrefix}-jumpbox'
     location: location
     tags: allTags
     securityRules: contains(hubConfig, 'networkSecurityGroups') ? hubConfig.networkSecurityGroups.jumpbox : {}
@@ -208,7 +211,7 @@ module hubRouteJumpbox './modules/Microsoft.Network/routeTables/deploy.bicep' = 
   scope: resourceGroup(resourceGroupNames.networkHubRG.name)
   name: '${dplPrefix}-hub-network-rt-jumpbox'
   params: {
-    name: 'rt-${dplPrefix}-jumpbox'
+    name: 'rt-${rsPrefix}-jumpbox'
     location: location
     tags: allTags
     routes: contains(hubConfig, 'networkRoutes') ? hubConfig.networkRoutes.jumpbox : {}
@@ -250,7 +253,7 @@ module hubVnet './modules/Microsoft.Network/virtualNetworks/deploy.bicep' = {
   params: {
     addressPrefixes: contains(hubConfig, 'hubNetwork') ? hubConfig.hubNetwork.addressPrefixes.value : {}
     subnets: hubSubnets
-    name: 'vn-${dplPrefix}-hub-01'
+    name: 'vn-${rsPrefix}-hub-01'
     location: location
     tags: allTags
   }
@@ -272,7 +275,7 @@ module pipAzFirewall './modules/Microsoft.Network/publicIPAddresses/deploy.bicep
   scope: resourceGroup(resourceGroupNames.networkHubRG.name)
   name: '${dplPrefix}-pipAzFirewall'
   params: {
-    name: 'pip-${dplPrefix}-azfw'
+    name: 'pip-${rsPrefix}-azfw'
     location: location
     tags: allTags
     skuName: azFwConfig.publicIPSettings.skuName
@@ -286,12 +289,12 @@ module pipAzFirewall './modules/Microsoft.Network/publicIPAddresses/deploy.bicep
   ]
 }
   
-@description('Deploy Azure Firewall Components')
+@description('Deploy Azure Firewall service')
 module azFirewall './modules/Microsoft.Network/azureFirewalls/deploy.bicep' = if (deployAzureFirewall) {
   scope: resourceGroup(resourceGroupNames.networkHubRG.name)
   name: '${dplPrefix}-AzFirewall'
   params: {
-    name: 'afw-${dplPrefix}'
+    name: 'afw-${rsPrefix}'
     location: location
     tags: allTags
     azureFirewallSubnetPublicIpId: pipAzFirewall.outputs.resourceId
@@ -299,6 +302,7 @@ module azFirewall './modules/Microsoft.Network/azureFirewalls/deploy.bicep' = if
     applicationRuleCollections: azFwConfig.applicationRuleCollections.value
     networkRuleCollections: azFwConfig.networkRuleCollections.value
     enableDefaultTelemetry: true
+    diagnosticWorkspaceId: logAnalyticsWorkspace.outputs.resourceId
   }
   dependsOn: [
     // this is necessary to ensure all resource groups have been deployed
@@ -306,9 +310,50 @@ module azFirewall './modules/Microsoft.Network/azureFirewalls/deploy.bicep' = if
     resourceGroups
     hubVnet
     pipAzFirewall
+    logAnalyticsWorkspace
   ]
 }
 
 //------------------------------------------------------------------------------
 // Deploy Azure Bastion Resources
 
+@description('Deploy a public IP for Azure Bastion')
+module pipAzBastion './modules/Microsoft.Network/publicIPAddresses/deploy.bicep' = if (deployAzureBastion) {
+  scope: resourceGroup(resourceGroupNames.networkHubRG.name)
+  name: '${dplPrefix}-pipAzBastion'
+  params: {
+    name: 'pip-${rsPrefix}-azbastion'
+    location: location
+    tags: allTags
+    skuName: azFwConfig.publicIPSettings.skuName
+    publicIPAllocationMethod: azFwConfig.publicIPSettings.publicIPAllocationMethod
+    zones: azFwConfig.publicIPSettings.zones
+  }
+  dependsOn: [
+    // this is necessary to ensure all resource groups have been deployed
+    // before we attempt to deploy resources under those resource groups.
+    resourceGroups
+  ]
+}
+
+@description('Deploy Azure Bastion service')
+module azBastion './modules/Microsoft.Network/bastionHosts/deploy.bicep' = if (deployAzureBastion) {
+  scope: resourceGroup(resourceGroupNames.networkHubRG.name)
+  name: '${dplPrefix}-AzBastion'
+  params: {
+    name: 'bas-${rsPrefix}'
+    location: location
+    tags: allTags
+    vNetId: hubVnet.outputs.resourceId
+    azureBastionSubnetPublicIpId: pipAzBastion.outputs.resourceId
+    enableDefaultTelemetry: true
+    diagnosticWorkspaceId: logAnalyticsWorkspace.outputs.resourceId
+  }
+  dependsOn: [
+    resourceGroups
+    pipAzBastion
+    hubVnet
+    logAnalyticsWorkspace
+    azFirewall
+  ]
+}
