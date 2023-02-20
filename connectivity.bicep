@@ -26,14 +26,14 @@ param tags object = {}
 @description('when true, all resources will be deployed under a single resource-group')
 param useSingleResourceGroup bool = false
 
-@description('Optional. Service Tier: PerGB2018, Free, Standalone, PerGB or PerNode.')
+@description('Log Analytics Service Tier: PerGB2018, Free, Standalone, PerGB or PerNode.')
 @allowed([
   'Free'
   'Standalone'
   'PerNode'
   'PerGB2018'
 ])
-param serviceTier string = 'PerGB2018'
+param logAnalyticsServiceTier string = 'PerGB2018'
 
 @description('when true, an Azure Firewall will be deployed')
 param deployAzureFirewall bool = true
@@ -41,11 +41,17 @@ param deployAzureFirewall bool = true
 @description('when true, an Azure Bastion will be deployed')
 param deployAzureBastion bool = true
 
+@description('when true, a VPN Gateway will be deployed')
+param deployVPNGateway bool = true
+
 @description('hub configuration')
 param hubConfig object = loadJsonContent('config/hub.jsonc')
 
 @description('Azure Firewall Configuration')
 param azFwConfig object = loadJsonContent('config/azFirewall.jsonc')
+
+@description('Azure Firewall Configuration')
+param vpngConfig object = loadJsonContent('config/vpnGateway.jsonc')
 
 @description('deployment timestamp')
 param timestamp string = utcNow('g')
@@ -118,7 +124,7 @@ module logAnalyticsWorkspace './modules/Microsoft.OperationalInsights/workspaces
     name: 'log-${rsPrefix}'
     location: location
     tags: allTags
-    serviceTier: serviceTier
+    serviceTier: logAnalyticsServiceTier
   }
   dependsOn: [
     // this is necessary to ensure all resource groups have been deployed
@@ -357,3 +363,28 @@ module azBastion './modules/Microsoft.Network/bastionHosts/deploy.bicep' = if (d
     azFirewall
   ]
 }
+
+//------------------------------------------------------------------------------
+// Deploy VPN Gateway Resources
+
+@description('Deploy Azure VPN Gateway service')
+module vpnGateway './modules/Microsoft.Network/virtualNetworkGateways/deploy.bicep' = if (deployVPNGateway) {
+  scope: resourceGroup(resourceGroupNames.networkHubRG.name)
+  name: '${dplPrefix}-vpnGateway'
+  params: {
+    name: 'vpng-${rsPrefix}'
+    location: location
+    tags: allTags
+    virtualNetworkGatewaySku:  vpngConfig.virtualNetworkGatewaySku
+    virtualNetworkGatewayType:  vpngConfig.virtualNetworkGatewayType
+    vNetResourceId: hubVnet.outputs.resourceId
+    enableBgp:  vpngConfig.enableBgp
+    enableDefaultTelemetry: true
+    vpnType:  vpngConfig.vpnType
+    activeActive:  vpngConfig.activeActive
+    //vpnClientAddressPoolPrefix:  vpngConfig.vpnClientAddressPoolPrefix
+  
+  }
+}
+
+

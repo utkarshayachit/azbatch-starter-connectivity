@@ -1,0 +1,16 @@
+{
+/// This configuration file is intended to provide information about the VPN Gateway configuration. 
+
+// Provided values will be checked in the bicep templates. To ensure a proper configuration, please check 
+// allowed values for the resource before changing the defaults:
+// https://github.com/Azure/ResourceModules/tree/main/modules/Microsoft.Network/virtualNetworkGateways
+
+    "virtualNetworkGatewaySku": "VpnGw1",
+    "virtualNetworkGatewayType": "Vpn",
+    "enableBgp": false,
+    "vpnType": "RouteBased",
+    "activeActive": false
+    
+    //"vpnClientAddressPoolPrefix" : "172.16.25.0/24" // Only used if client cert is also provided.... not useful for a generic deployment template
+
+}

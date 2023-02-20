@@ -10,19 +10,29 @@ Already Deployed:
 - pip AzFirewall
 - Azure Firewall
 - pipBastion
+- Azure Bastion
+- VPN Gateway depoloyment
 
 Currently Working On 
 
-- Azure Bastion
+- VPN Gateway depoloyment
+
 
 - How to configure (static) RT on VHUB towards the FW private IP? But only, if AzFW has to be deployed? - currently part of the .jsonc file
 
+
+Known Issues:
+
+- 'AzureAsyncOperationWaiting' errors when Bastion and FW are both set to false - only VPNG to true
+
 Open
 
-- Propagate diagonstic settings
-- VPN Gateway depoloyment
 - private DNS Zone (link to Hub Vnet)
-- VM Jumpboxes: Win and Linux
+- Propagate diagonstic settings
+
+
+- VM Jumpboxes: Win and Linux  (for Win: can we use a an image version which supports VTMP module?)
+- VM Jumpbox: Can we apply a DSC config? -> allow RDP to Windows Images (in case we want to domain join them)
 
 - Create a Spoke Network incl. subnets and peering to Hub + link to private DNS?
 
