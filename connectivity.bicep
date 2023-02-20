@@ -36,10 +36,13 @@ param useSingleResourceGroup bool = false
 param serviceTier string = 'PerGB2018'
 
 @description('when true, an Azure Firewall will be deployed')
-param deployAzureFirewall bool = false
+param deployAzureFirewall bool = true
 
 @description('hub configuration')
 param hubConfig object = loadJsonContent('config/hub.jsonc')
+
+@description('Azure Firewall Configuration')
+param azFwConfig object = loadJsonContent('config/azFirewall.jsonc')
 
 @description('deployment timestamp')
 param timestamp string = utcNow('g')
@@ -140,7 +143,6 @@ module appInsights './modules/Microsoft.Insights/components/deploy.bicep' = {
     resourceGroups
   ]
 }
-
 
 //To-Do: How to verify if .bastion rule is part of the NSG config object?
 
@@ -261,3 +263,52 @@ module hubVnet './modules/Microsoft.Network/virtualNetworks/deploy.bicep' = {
     hubRouteJumpbox
   ]
 }
+
+//------------------------------------------------------------------------------
+// Deploy Azure Firewall Resources
+
+@description('Deploy a public IP for Azure Firewall')
+module pipAzFirewall './modules/Microsoft.Network/publicIPAddresses/deploy.bicep' = if (deployAzureFirewall) {
+  scope: resourceGroup(resourceGroupNames.networkHubRG.name)
+  name: '${dplPrefix}-pipAzFirewall'
+  params: {
+    name: 'pip-${dplPrefix}-azfw'
+    location: location
+    tags: allTags
+    skuName: azFwConfig.publicIPSettings.skuName
+    publicIPAllocationMethod: azFwConfig.publicIPSettings.publicIPAllocationMethod
+    zones: azFwConfig.publicIPSettings.zones
+  }
+  dependsOn: [
+    // this is necessary to ensure all resource groups have been deployed
+    // before we attempt to deploy resources under those resource groups.
+    resourceGroups
+  ]
+}
+  
+@description('Deploy Azure Firewall Components')
+module azFirewall './modules/Microsoft.Network/azureFirewalls/deploy.bicep' = if (deployAzureFirewall) {
+  scope: resourceGroup(resourceGroupNames.networkHubRG.name)
+  name: '${dplPrefix}-AzFirewall'
+  params: {
+    name: 'afw-${dplPrefix}'
+    location: location
+    tags: allTags
+    azureFirewallSubnetPublicIpId: pipAzFirewall.outputs.resourceId
+    vNetId: hubVnet.outputs.resourceId
+    applicationRuleCollections: azFwConfig.applicationRuleCollections.value
+    networkRuleCollections: azFwConfig.networkRuleCollections.value
+    enableDefaultTelemetry: true
+  }
+  dependsOn: [
+    // this is necessary to ensure all resource groups have been deployed
+    // before we attempt to deploy resources under those resource groups.
+    resourceGroups
+    hubVnet
+    pipAzFirewall
+  ]
+}
+
+//------------------------------------------------------------------------------
+// Deploy Azure Bastion Resources
+

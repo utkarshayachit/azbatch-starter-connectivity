@@ -1,0 +1,412 @@
+ {
+ 
+ /// This configuration file is intended to provide information about the Azure Firewall resources. 
+
+
+    "publicIPSettings" : {
+        "skuName": "Standard",
+        "publicIPAllocationMethod": "Static",
+        "zones": [
+            "1",
+            "2",
+            "3"
+        ]
+    } ,
+
+
+    "applicationRuleCollections": {
+        "value": [
+            {
+                "name": "applicationRuleCollectionAllow",
+                 "properties": {
+                    "action": {
+                      "type": "allow"
+                    },
+                    "priority": 100,
+                    "rules": [
+
+                        {
+                            "name": "web-Microsoft",
+                            "priority": 0,
+                            "direction": "Inbound",
+                            "protocols": [
+                                {
+                                    "protocolType": "Http",
+                                    "port": 80
+                                },
+                                {
+                                    "protocolType": "Https",
+                                    "port": 443
+                                }
+                            ],
+                            "fqdnTags": [],
+                            "targetFqdns": [
+                                "*aka.ms",
+                                "*azure.com",
+                                "*azure.net",
+                                "*azure-automation.net",
+                                "*azuredatabricks.net",
+                                "*azuredatalakestore.net",
+                                "*.azurecr.io",
+                                "*.database.windows.net",
+                                "*azureedge.net",
+                                "*azurewebsites.net",
+                                "*bing.com",
+                                "*gfx.ms",
+                                "*microsoft.com",
+                                "*microsoftonline.com",
+                                "*microsoftonline-p.com",
+                                "*msappproxy.net",
+                                "*msauth.net",
+                                "*msecnd.net",
+                                "*msftauth.net",
+                                "*msocsp.com",
+                                "*oneget.org",
+                                "*powershellgallery.com",
+                                "*visualstudio.com",
+                                "*vsassets.io",
+                                "*windows.net",
+                                "*windows.com",
+                                "*loganalytics.io",
+                                "*applicationinsights.io",
+                                "*microsofttranslator.com",
+                                "*clouddatahub.net",
+                                "*cloudsimple.com",
+                                "*cloudsimple.io",
+                                "*api.videoindexer.ai",
+                                "*azurecr.io",
+                                "*.azure.ai",
+                                "*.aether.ms",
+                                "*azureml.net",
+                                "*finnhub.io"
+                            ],
+                            "actions": [],
+                            "sourceAddresses": [
+                                "*"
+                            ],
+                            "sourceIpGroups": []
+                        
+                        },
+
+                        {
+                            "name": "web-LinuxRepos",
+                            "priority": 0,
+                            "direction": "Inbound",
+                            "protocols": [
+                                {
+                                    "protocolType": "Http",
+                                    "port": 80
+                                },
+                                {
+                                    "protocolType": "Https",
+                                    "port": 443
+                                }
+                            ],
+                            "fqdnTags": [],
+                            "targetFqdns": [
+                                "*redhat.com",
+                                "*snapcraft.io",
+                                "*trafficmanager.net",
+                                "*ubuntu.com"
+                            ],
+                            "actions": [],
+                            "sourceAddresses": [
+                                "*"
+                            ],
+                            "sourceIpGroups": []
+                        },
+            
+                        {
+                            "name": "web-DevOps",
+                            "priority": 0,
+                            "direction": "Inbound",
+                            "protocols": [
+                                {
+                                    "protocolType": "Http",
+                                    "port": 80
+                                },
+                                {
+                                    "protocolType": "Https",
+                                    "port": 443
+                                }
+                            ],
+                            "fqdnTags": [],
+                            "targetFqdns": [
+                                "*github.com",
+                                "*github.io",
+                                "*cloudflare.com",
+                                "*fedoraproject.org",
+                                "*githubusercontent.com",
+                                "*hashicorp.com",
+                                "*mongodb.com",
+                                "*mongodb.org",
+                                "*terraform.io",
+                                "*python.org",
+                                "*pythonhosted.org",
+                                "*pypi.org",
+                                "*accuweather.com",
+                                "*openweathermap.org",
+                                "avwx.rest",
+                                "*bintray.com",
+                                "*pypa.io"
+                            ],
+                            "actions": [],
+                            "sourceAddresses": [
+                                "*"
+                            ],
+                            "sourceIpGroups": []
+                        },
+            
+                        {
+                            "name": "web-Google",
+                            "priority": 0,
+                            "direction": "Inbound",
+                            "protocols": [
+                                {
+                                    "protocolType": "Http",
+                                    "port": 80
+                                },
+                                {
+                                    "protocolType": "Https",
+                                    "port": 443
+                                }
+                            ],
+                            "fqdnTags": [],
+                            "targetFqdns": [
+                                "*gcr.io",
+                                "*google.com",
+                                "*googleapis.com"
+                            ],
+                            "actions": [],
+                            "sourceAddresses": [
+                                "*"
+                            ],
+                            "sourceIpGroups": []
+                        },
+            
+                        {
+                            "name": "web-AKS",
+                            "priority": 0,
+                            "direction": "Inbound",
+                            "protocols": [
+                                {
+                                    "protocolType": "Http",
+                                    "port": 80
+                                },
+                                {
+                                    "protocolType": "Https",
+                                    "port": 443
+                                }
+                            ],
+                            "fqdnTags": [],
+                            "targetFqdns": [
+                                "*amazonaws.com",
+                                "*azmk8s.io",
+                                "*azurecr.io",
+                                "*cloudapp.net",
+                                "*cloudfront.net",
+                                "*docker.com",
+                                "*docker.io",
+                                "*pivotal.io",
+                                "*quay.io",
+                                "*nvidia.github.io",
+                                "*apt.dockerproject.org",
+                                "*cdn.mscr.io"
+                            ],
+                            "actions": [],
+                            "sourceAddresses": [
+                                "*"
+                            ],
+                            "sourceIpGroups": []
+                        },
+            
+                        {
+                            "name": "web-Misc",
+                            "priority": 0,
+                            "direction": "Inbound",
+                            "protocols": [
+                                {
+                                    "protocolType": "Http",
+                                    "port": 80
+                                },
+                                {
+                                    "protocolType": "Https",
+                                    "port": 443
+                                }
+                            ],
+                            "fqdnTags": [],
+                            "targetFqdns": [
+                                "*aspnetcdn.com",
+                                "*bootstrapcdn.com",
+                                "*nvidia.com",
+                                "*sentinelone.net",
+                                "*metrics.nsatc.net"
+                            ],
+                            "actions": [],
+                            "sourceAddresses": [
+                                "*"
+                            ],
+                            "sourceIpGroups": []
+                        },
+            
+                        {
+                            "name": "web-VirtualDesktop",
+                            "priority": 0,
+                            "direction": "Inbound",
+                            "protocols": [
+                                {
+                                    "protocolType": "Http",
+                                    "port": 80
+                                },
+                                {
+                                    "protocolType": "Https",
+                                    "port": 443
+                                }
+                            ],
+                            "fqdnTags": [],
+                            "targetFqdns": [
+                                "*cloud.com",
+                                "*citrixdata.com",
+                                "*nssvc.net",
+                                "*xendesktop.net",
+                                "*netscalergateway.net",
+                                "*citrixnetworkapi.net",
+                                "*citrixworkspacesapi.net",
+                                "*service-now.com",
+                                "*citrix.com",
+                                "*netscalermgmt.net"
+                            ],
+                            "actions": [],
+                            "sourceAddresses": [
+                                "*"
+                            ],
+                            "sourceIpGroups": []
+                        },
+            
+                        {
+                            "name": "AzureBackup",
+                            "priority": 0,
+                            "direction": "Inbound",
+                            "protocols": [
+                                {
+                                    "protocolType": "Http",
+                                    "port": 80
+                                },
+                                {
+                                    "protocolType": "Https",
+                                    "port": 443
+                                }
+                            ],
+                            "fqdnTags": [
+                                "AzureBackup"
+                            ],
+                            "targetFqdns": [],
+                            "actions": [],
+                            "sourceAddresses": [
+                                "*"
+                            ],
+                            "sourceIpGroups": []
+                        },
+            
+                        {
+                            "name": "WindowsUpdate",
+                            "priority": 0,
+                            "direction": "Inbound",
+                            "protocols": [
+                                {
+                                    "protocolType": "Http",
+                                    "port": 80
+                                },
+                                {
+                                    "protocolType": "Https",
+                                    "port": 443
+                                }
+                            ],
+                            "fqdnTags": [
+                                "WindowsUpdate"
+                            ],
+                            "targetFqdns": [],
+                            "actions": [],
+                            "sourceAddresses": [
+                                "*"
+                            ],
+                            "sourceIpGroups": []
+                        }
+
+                        
+                    ]
+
+                }
+                
+            }
+        ]
+    } ,   
+      
+
+    "networkRuleCollections": {
+        "value": [
+
+          {
+            "name": "allow-network-rules",
+            "properties": {
+              "action": {
+                "type": "allow"
+              },
+              "priority": 100,
+              "rules": [
+                
+                {
+                  "destinationAddresses": [
+                    "*"
+                  ],
+                  "destinationPorts": [
+                    "12000",
+                    "123"
+                  ],
+                  "name": "allow-ntp",
+                  "protocols": [
+                    "Any"
+                  ],
+                  "sourceAddresses": [
+                    "*"
+                  ]
+                }
+              ]
+            }
+          },
+
+          {
+            "name": "allow-Jumpbox-network-rules",
+            "properties": {
+              "action": {
+                "type": "allow"
+              },
+              "priority": 105,
+              "rules": [
+
+                {
+                    "name": "Dev-Jumpboxes",
+                    "protocols": [
+                        "Any"
+                    ],
+                    "sourceAddresses": [
+                        "10.1.4.0/24"            // Make sure that the IP range corresponds to the IP range of your JumpBox Subnet
+                    ],
+                    "destinationAddresses": [
+                        "*"
+                    ],
+                    "sourceIpGroups": [],
+                    "destinationIpGroups": [],
+                    "destinationFqdns": [],
+                    "destinationPorts": [
+                        "*"
+                    ]
+                }
+                
+              ]
+            }
+          }
+        ]
+    }
+
+ }

@@ -7,18 +7,25 @@ Already Deployed:
 - VNet and Subnets
 - Log Analytics Workspace
 - Application Insights
+- pip AzFirewall
+- Azure Firewall
 
 Currently Working On 
 
-Azure Firewall
+- pipBastion / Azure Bastion
 
 Open
 
-- Azure Bastion
 - Propagate diagonstic settings
 - VPN Gateway depoloyment
-- private DNS Zone
+- private DNS Zone (link to Hub Vnet)
 - VM Jumpboxes: Win and Linux
+
 - Validate that default bicep parameters don't contradict secure deployment (e.g. for LogAnalytics ingestion)
+- Review applicationRuleCollection in Azure Firewall
+- Review networkRuleCollection for Spoke to Spoke connectivity
 
 - Collect all relevant output for Secure Batch Repository (as input)
+
+- Implement schema validation?
+- GitHub Auto-Testing
