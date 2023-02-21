@@ -53,6 +53,9 @@ param azFwConfig object = loadJsonContent('config/azFirewall.jsonc')
 @description('Azure Firewall Configuration')
 param vpngConfig object = loadJsonContent('config/vpnGateway.jsonc')
 
+@description('Private DNS Zone Configuration')
+param pdnsZoneConfigBase string = loadTextContent('config/privateDnszone.json')
+
 @description('deployment timestamp')
 param timestamp string = utcNow('g')
 
@@ -382,9 +385,46 @@ module vpnGateway './modules/Microsoft.Network/virtualNetworkGateways/deploy.bic
     enableDefaultTelemetry: true
     vpnType:  vpngConfig.vpnType
     activeActive:  vpngConfig.activeActive
-    //vpnClientAddressPoolPrefix:  vpngConfig.vpnClientAddressPoolPrefix
-  
+    gatewayPipName: 'pip-${rsPrefix}-vpngw'  
   }
+  dependsOn: [
+    resourceGroups
+    hubVnet
+  ]
 }
+
+//------------------------------------------------------------------------------
+// Deploy private DNS Zones Resources
+
+// Replace region specific dns zone entries with the deployment region
+var  pdnsZoneConfig = json(replace(pdnsZoneConfigBase, 'xxxxxx', location))
+
+var virtualNetworkLinks = [
+  {
+    registrationEnabled: false
+    virtualNetworkResourceId: hubVnet.outputs.resourceId
+  }
+]
+
+
+output pdnsDebug object =  pdnsZoneConfig 
+
+@description('Deploy private Dns Zones for private endpoint resolution')
+module privateDnsZone './modules/Microsoft.Network/privateDnsZones/deploy.bicep' = [for dnsZone in pdnsZoneConfig.privateDnsZones.value: {
+  scope: resourceGroup(resourceGroupNames.networkHubRG.name)
+  name: '${dplPrefix}-pdnsz-${dnsZone}'
+  params: {
+    name: dnsZone
+    location: 'global'
+    tags: allTags
+    enableDefaultTelemetry: true
+    virtualNetworkLinks: virtualNetworkLinks
+  }
+  dependsOn: [
+    resourceGroups
+    hubVnet
+  ]
+}]
+ 
 
 
