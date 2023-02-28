@@ -44,6 +44,9 @@ param deployAzureBastion bool = true
 @description('when true, a VPN Gateway will be deployed')
 param deployVPNGateway bool = true
 
+@description('when true, a Linux VM will be deployed into the Hub Network')
+param deployLinuxJumpbox bool = true
+
 @description('hub configuration')
 param hubConfig object = loadJsonContent('config/hub.jsonc')
 
@@ -55,6 +58,7 @@ param vpngConfig object = loadJsonContent('config/vpnGateway.jsonc')
 
 @description('Private DNS Zone Configuration')
 param pdnsZoneConfigBase string = loadTextContent('config/privateDnszone.json')
+
 
 @description('deployment timestamp')
 param timestamp string = utcNow('g')
@@ -426,5 +430,21 @@ module privateDnsZone './modules/Microsoft.Network/privateDnsZones/deploy.bicep'
   ]
 }]
  
+//------------------------------------------------------------------------------
+// Deploy private DNS Zones Resources
 
-
+@description('deploy a Linux VM into the Hub network')
+module linuxJumpBox './modules/Microsoft.Compute/virtualMachines/deploy.bicep' = {
+  scope: 
+  name: 
+  params: {
+    adminUsername: 
+    imageReference: {
+    }
+    nicConfigurations: 
+    osDisk: {
+    }
+    osType: 
+    vmSize: 
+  }
+}
