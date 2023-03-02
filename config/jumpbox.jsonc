@@ -1,0 +1,39 @@
+{
+/// This configuration file is intended to provide information about the Jumpbox VMs
+
+/// Note:
+
+/// Make sure the subnet name matches the subnet name of choice defined in the hub.jsonc config file
+/// Microsoft.Compute/EncryptionAtHost' feature needs to be enabled if encryptionAtHost is set to true
+
+
+"linux" : {
+    "vmSubnet": "sn-jumpbox",   
+    "vmNameSuffix": "vm-linux",
+    "adminUsername": "localadmin",
+    "encryptionAtHost": false,  
+    "enableAcceleratedNetworking": false,
+    "vmSize": "Standard_B1s",
+    "osType": "Linux",
+    "osDisk": {
+        "value": {
+            "createOption" : "fromImage",
+            "deleteOption": "Delete",
+            "diskSizeGB": "128",
+            "managedDisk": {
+                "storageAccountType": "Premium_LRS"
+            }
+        }
+    },
+    "imageReference": {
+        "value": {
+            "publisher": "canonical",
+            "offer": "0001-com-ubuntu-server-focal",
+            "sku": "20_04-lts-gen2",
+            "version": "latest"
+        }
+    }
+
+}
+
+}

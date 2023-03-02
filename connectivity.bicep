@@ -59,9 +59,17 @@ param vpngConfig object = loadJsonContent('config/vpnGateway.jsonc')
 @description('Private DNS Zone Configuration')
 param pdnsZoneConfigBase string = loadTextContent('config/privateDnszone.json')
 
+@description('Private DNS Zone Configuration')
+param vmJumpBoxConfig object = loadJsonContent('config/jumpbox.jsonc')
+
+@description('Private DNS Zone Configuration')
+param vmJumpBoxLinuxInit string = loadTextContent('config/linux-vm-init-script.sh')
 
 @description('deployment timestamp')
 param timestamp string = utcNow('g')
+
+@secure()
+param adminPassword string 
 
 //------------------------------------------------------------------------------
 // Features: additive components
@@ -202,18 +210,6 @@ module hubNSGjumpbox './modules/Microsoft.Network/networkSecurityGroups/deploy.b
   ]
 }
 
-@description('nsg rules for hub bastion subnet')
-output nsg_bastion array = !hasNsg ? [] : map(range(0, length(hubConfig.networksecurityGroups.bastion)), i => {
-   name: contains(hubConfig.networkSecurityGroups.bastion[i], 'name') ? hubConfig.networkSecurityGroups.bastion[i].name : 'nsg_bastion${i}'
-   properties: hubConfig.networkSecurityGroups.bastion[i].properties
-})
-
-@description('nsg rules for hub jumpbox subnet')
-output nsg_jumpbox array = !hasNsg ? [] : map(range(0, length(hubConfig.networksecurityGroups.jumpbox)), i => {
-   name: contains(hubConfig.networkSecurityGroups.jumpbox[i], 'name') ? hubConfig.networkSecurityGroups.jumpbox[i].name : 'nsg_jumpbox${i}'
-   properties: hubConfig.networkSecurityGroups.jumpbox[i].properties
-})
-
 //------------------------------------------------------------------------------
 // Process hub network route tables
 
@@ -235,12 +231,6 @@ module hubRouteJumpbox './modules/Microsoft.Network/routeTables/deploy.bicep' = 
     resourceGroups
   ]
 }
-
-@description('routes for hub jumpbox subnet')
-output route_jumpbox array = !hasRoutes ? [] : map(range(0, length(hubConfig.networkRoutes.jumpbox)), i => {
-   name: contains(hubConfig.networkRoutes.jumpbox[i], 'name') ? hubConfig.networkRoutes.jumpbox[i].name : 'nsg_jumpbox${i}'
-   properties: hubConfig.networkRoutes.jumpbox[i].properties
-})
 
 //------------------------------------------------------------------------------
 // Process hub virtual network and subnets
@@ -410,9 +400,6 @@ var virtualNetworkLinks = [
   }
 ]
 
-
-output pdnsDebug object =  pdnsZoneConfig 
-
 @description('Deploy private Dns Zones for private endpoint resolution')
 module privateDnsZone './modules/Microsoft.Network/privateDnsZones/deploy.bicep' = [for dnsZone in pdnsZoneConfig.privateDnsZones.value: {
   scope: resourceGroup(resourceGroupNames.networkHubRG.name)
@@ -431,20 +418,77 @@ module privateDnsZone './modules/Microsoft.Network/privateDnsZones/deploy.bicep'
 }]
  
 //------------------------------------------------------------------------------
-// Deploy private DNS Zones Resources
+// Deploy private Hub Jumpboxes
+
+var jumpboxSubNetId = '${hubVnet.outputs.resourceId}/subnets/${vmJumpBoxConfig.linux.vmSubnet}'
+
+var nicConfigurations = {
+  linux: [
+    {
+      nicSuffix: '-nic-linux'
+      enableAcceleratedNetworking: vmJumpBoxConfig.linux.enableAcceleratedNetworking
+      ipConfigurations: [
+        {
+          name: 'ipconfig-linux'
+          subnetResourceId: jumpboxSubNetId
+          privateIPAllocationMethod: 'Dynamic'
+        }
+      ]
+    }
+  ]
+  windows: [
+    {
+      nicSuffix: '-nic-windows'
+      enableAcceleratedNetworking: vmJumpBoxConfig.linux.enableAcceleratedNetworking
+      ipConfigurations: [
+        {
+          name: 'ipconfig-windows'
+          subnetResourceId: jumpboxSubNetId
+          privateIPAllocationMethod: 'Dynamic'
+        }
+      ]
+    }
+  ]
+} 
 
 @description('deploy a Linux VM into the Hub network')
-module linuxJumpBox './modules/Microsoft.Compute/virtualMachines/deploy.bicep' = {
-  scope: 
-  name: 
+module linuxJumpBox './modules/Microsoft.Compute/virtualMachines/deploy.bicep' = if (deployLinuxJumpbox) { 
+  scope: resourceGroup(resourceGroupNames.connectivityJumpBoxRG.name)
+  name: '${dplPrefix}-vm-linux-jumpbox'
   params: {
-    adminUsername: 
-    imageReference: {
-    }
-    nicConfigurations: 
-    osDisk: {
-    }
-    osType: 
-    vmSize: 
-  }
+    location: location
+    tags: allTags
+    name: '${rsPrefix}-${vmJumpBoxConfig.linux.vmNameSuffix}'
+    imageReference: vmJumpBoxConfig.linux.imageReference.value
+    nicConfigurations: nicConfigurations.linux
+    osDisk: vmJumpBoxConfig.linux.osDisk.value
+    osType: vmJumpBoxConfig.linux.osType
+    vmSize: vmJumpBoxConfig.linux.vmSize
+    encryptionAtHost: vmJumpBoxConfig.linux.encryptionAtHost
+    customData: base64(vmJumpBoxLinuxInit)
+    adminUsername: vmJumpBoxConfig.linux.adminUsername
+    adminPassword: adminPassword
+  } 
+  dependsOn: [
+    resourceGroups
+    hubVnet
+    hubNSGjumpbox
+  ]
 }
+
+
+//------------------------------------------------------------------------------
+// Output relevant values for the spoke network configuration
+
+@description('Output Spoke Network Configuration values')
+output hubInformation object = {
+  workspaceResourceId: logAnalyticsWorkspace.outputs.resourceId
+  appInsightsApplicationId: appInsights.outputs.applicationId
+  hubVnetResourceId: hubVnet.outputs.resourceId
+  fwPrivateIp: azFirewall.outputs.privateIp
+}
+
+
+
+
+

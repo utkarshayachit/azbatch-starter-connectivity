@@ -14,11 +14,11 @@ Already Deployed:
 - VPN Gateway depoloyment
 - Create public IP for VPN Gateway (like for AzFW and Bastion, so we can have the same naming convention) - done?
 - private DNS Zone (link to Hub Vnet)
+- Linux VM Jumpbox
 
 Currently Working On 
 
-- VM Jumpboxes: Win and Linux  (for Win: can we use a an image version which supports VTMP module?)
-
+- VM Jumpboxes: Win (for Win: can we use a an image version which supports VTMP module?)
 
 - How to configure (static) RT on VHUB towards the FW private IP? But only, if AzFW has to be deployed? - currently part of the .jsonc file
 
@@ -31,15 +31,12 @@ Known Issues:
 
 Open
 
-
+- Verify if Workspace ID is enabled on all resources
 - Propagate diagonstic settings
-
-
 
 - VM Jumpbox: Can we apply a DSC config? -> allow RDP to Windows Images (in case we want to domain join them)
 
 - Create a Spoke Network incl. subnets and peering to Hub + link to private DNS? (AzBatch side)
-
 
 - Validate that default bicep parameters don't contradict secure deployment (e.g. for LogAnalytics ingestion)
 - Review applicationRuleCollection in Azure Firewall

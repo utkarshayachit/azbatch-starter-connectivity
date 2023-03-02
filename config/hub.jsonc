@@ -244,12 +244,12 @@
 
                 {
                     "addressPrefix": "10.1.4.0/24",   // if you change this IP, pls ensure the AzFirewall rule in azFriewall.jsonc is modified, too.
-                    "name": "sn-jumpbox",
+                    "name": "sn-jumpbox",             // if you change the name of subnet and you plan to deploy a jumpbox vm, please adjust the jumpbox.jsonc file, too.
                     "privateEndpointNetworkPolicies": "Enabled",
                     "privateLinkServiceNetworkPolicies": "Enabled",
                     "networkSecurityGroupId": "--nsg-jumpbox--", // will be replaced wit the id during runtime
                     "routeTableId":  "--rt-jumpbox--",         // will be replaced wit the id during runtime, comment out if no RT or FW deployed
-                    "enabled": false
+                    "enabled": true
                 }
 
             ]
