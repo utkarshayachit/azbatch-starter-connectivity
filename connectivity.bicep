@@ -1,3 +1,5 @@
+// https://github.com/Azure/ResourceModules/
+
 targetScope = 'subscription'
 
 //------------------------------------------------------------------------------
@@ -45,7 +47,10 @@ param deployAzureBastion bool = true
 param deployVPNGateway bool = true
 
 @description('when true, a Linux VM will be deployed into the Hub Network')
-param deployLinuxJumpbox bool = true
+param deployLinuxJumpbox bool = false
+
+@description('when true, a Windows VM will be deployed into the Hub Network')
+param deployWindowsJumpbox bool = true
 
 @description('hub configuration')
 param hubConfig object = loadJsonContent('config/hub.jsonc')
@@ -53,16 +58,16 @@ param hubConfig object = loadJsonContent('config/hub.jsonc')
 @description('Azure Firewall Configuration')
 param azFwConfig object = loadJsonContent('config/azFirewall.jsonc')
 
-@description('Azure Firewall Configuration')
+@description('Azure VPN Gateway Configuration')
 param vpngConfig object = loadJsonContent('config/vpnGateway.jsonc')
 
 @description('Private DNS Zone Configuration')
 param pdnsZoneConfigBase string = loadTextContent('config/privateDnszone.json')
 
-@description('Private DNS Zone Configuration')
+@description('Jumpbox Configuration settings')
 param vmJumpBoxConfig object = loadJsonContent('config/jumpbox.jsonc')
 
-@description('Private DNS Zone Configuration')
+@description('Load the init script of the Linux Jumpbox')
 param vmJumpBoxLinuxInit string = loadTextContent('config/linux-vm-init-script.sh')
 
 @description('deployment timestamp')
@@ -172,7 +177,6 @@ module appInsights './modules/Microsoft.Insights/components/deploy.bicep' = {
 
 //------------------------------------------------------------------------------
 // Process hub network network security groups
-// https://github.com/Azure/ResourceModules/
 
 var hasNsg = contains(hubConfig, 'networkSecurityGroups') && length(hubConfig.networkSecurityGroups) > 0
 
@@ -465,7 +469,7 @@ module linuxJumpBox './modules/Microsoft.Compute/virtualMachines/deploy.bicep' =
     osType: vmJumpBoxConfig.linux.osType
     vmSize: vmJumpBoxConfig.linux.vmSize
     encryptionAtHost: vmJumpBoxConfig.linux.encryptionAtHost
-    customData: base64(vmJumpBoxLinuxInit)
+    customData: vmJumpBoxLinuxInit
     adminUsername: vmJumpBoxConfig.linux.adminUsername
     adminPassword: adminPassword
   } 
@@ -473,8 +477,56 @@ module linuxJumpBox './modules/Microsoft.Compute/virtualMachines/deploy.bicep' =
     resourceGroups
     hubVnet
     hubNSGjumpbox
+    azFirewall
+    azBastion
+    privateDnsZone
+    vpnGateway
   ]
 }
+
+var extensionCustomScriptConfig =  {
+  enabled: vmJumpBoxConfig.windows.deployJumpboxAddOns
+  fileData: [ 
+    {
+    uri: vmJumpBoxConfig.windows.vmExtensionWindowsJumpboxUri
+    }
+  ]
+  settings: {
+    commandToExecute: vmJumpBoxConfig.windows.vmExtensionCommandToExecute
+  }
+}
+
+
+@description('deploy a Windows VM into the Hub network')
+module windowsJumpBox './modules/Microsoft.Compute/virtualMachines/deploy.bicep' = if (deployWindowsJumpbox) { 
+  scope: resourceGroup(resourceGroupNames.connectivityJumpBoxRG.name)
+  name: '${dplPrefix}-vm-windows-jumpbox'
+  params: {
+    location: location
+    tags: allTags
+    name: vmJumpBoxConfig.windows.vmName
+    imageReference: vmJumpBoxConfig.windows.imageReference.value
+    nicConfigurations: nicConfigurations.windows
+    osDisk: vmJumpBoxConfig.windows.osDisk.value
+    osType: vmJumpBoxConfig.windows.osType
+    vmSize: vmJumpBoxConfig.windows.vmSize
+    encryptionAtHost: vmJumpBoxConfig.windows.encryptionAtHost
+    extensionCustomScriptConfig: extensionCustomScriptConfig
+    adminUsername: vmJumpBoxConfig.windows.adminUsername
+    adminPassword: adminPassword
+  } 
+  dependsOn: [
+    resourceGroups
+    hubVnet
+    hubNSGjumpbox
+    azFirewall
+    azBastion
+    privateDnsZone
+    vpnGateway
+    linuxJumpBox
+  ]
+}
+
 
 
 //------------------------------------------------------------------------------

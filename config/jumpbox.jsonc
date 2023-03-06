@@ -34,6 +34,39 @@
         }
     }
 
+},
+
+"windows" : {
+    "vmSubnet": "sn-jumpbox",   
+    "vmName": "jumpBoxWindows",
+    "adminUsername": "localadmin",
+    "encryptionAtHost": false,  
+    "enableAcceleratedNetworking": true,
+    "vmSize": "Standard_D4_v5",
+    "osType": "Windows",
+    "osDisk": {
+        "value": {
+            "createOption" : "fromImage",
+            "deleteOption": "Delete",
+            "diskSizeGB": "128",
+            "managedDisk": {
+                "storageAccountType": "Standard_LRS"
+            }
+        }
+    },
+    "imageReference": {
+        "value": {
+            "publisher": "microsoftwindowsdesktop",
+            "offer": "windows-11",
+            "sku": "win11-21h2-pro",
+            "version": "latest"
+        }
+    },
+    "deployJumpboxAddOns" : true,
+    "vmExtensionWindowsJumpboxUri": "https://raw.githubusercontent.com/mocelj/AzureBatch-Secured/main/artefacts/VM-Extensions-Windows/azure-batch-secured-jumpbox-setup.ps1",
+    "vmExtensionCommandToExecute": "powershell -ExecutionPolicy Unrestricted -File azure-batch-secured-jumpbox-setup.ps1"
+
 }
+
 
 }

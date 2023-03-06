@@ -636,6 +636,8 @@ module vm_desiredStateConfigurationExtension 'extensions/deploy.bicep' = if (ext
   }
 }
 
+// modified by Darko Mocelj - added commandToExecute to settings parameter
+
 module vm_customScriptExtension 'extensions/deploy.bicep' = if (extensionCustomScriptConfig.enabled) {
   name: '${uniqueString(deployment().name, location)}-VM-CustomScriptExtension'
   params: {
@@ -648,6 +650,7 @@ module vm_customScriptExtension 'extensions/deploy.bicep' = if (extensionCustomS
     enableAutomaticUpgrade: contains(extensionCustomScriptConfig, 'enableAutomaticUpgrade') ? extensionCustomScriptConfig.enableAutomaticUpgrade : false
     settings: {
       fileUris: [for fileData in extensionCustomScriptConfig.fileData: contains(fileData, 'storageAccountId') ? '${fileData.uri}?${listAccountSas(fileData.storageAccountId, '2019-04-01', accountSasProperties).accountSasToken}' : fileData.uri]
+      commandToExecute: !empty(extensionCustomScriptConfig.settings.commandToExecute) ? extensionCustomScriptConfig.settings.commandToExecute : null
     }
     protectedSettings: extensionCustomScriptProtectedSetting
     enableDefaultTelemetry: enableReferencedModulesTelemetry
