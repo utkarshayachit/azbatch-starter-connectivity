@@ -1,4 +1,10 @@
-// https://github.com/Azure/ResourceModules/
+//------------------------------------------------------------------------------
+// Note: 
+//
+// The Hub + other relevant components are based on the Common Azure Resources Library
+//
+// Please find the full repo incl. documentation here: https://github.com/Azure/ResourceModules/
+//------------------------------------------------------------------------------
 
 targetScope = 'subscription'
 
@@ -80,6 +86,12 @@ param vmJumpBoxConfig object = loadJsonContent('config/jumpbox.jsonc')
 @description('Load the init script of the Linux Jumpbox')
 param vmJumpBoxLinuxInit string = loadTextContent('artefacts/linux-vm-init-script.sh')
 
+
+
+// TO-DO: Use this object to populate the diag settings
+@description('Load diagnostic settings')
+param diagnosticConfig object = loadJsonContent('config/diagnostics.json')
+
 //------------------------------------------------------------------------------
 // Features: additive components
 //------------------------------------------------------------------------------
@@ -149,6 +161,10 @@ module logAnalyticsWorkspace './modules/Microsoft.OperationalInsights/workspaces
     location: location
     tags: allTags
     serviceTier: logAnalyticsServiceTier
+    diagnosticMetricsToEnable: [ 'AllMetrics' ]
+    diagnosticLogCategoriesToEnable: [ 'allLogs' ]
+    diagnosticLogsRetentionInDays: 1 
+    enableDefaultTelemetry: false 
   }
   dependsOn: [
     // this is necessary to ensure all resource groups have been deployed
@@ -169,6 +185,8 @@ module appInsights './modules/Microsoft.Insights/components/deploy.bicep' = {
     workspaceResourceId: logAnalyticsWorkspace.outputs.resourceId
     location: location
     tags: allTags
+    enableDefaultTelemetry: false
+    retentionInDays: 30
   }
   dependsOn: [
     // this is necessary to ensure all resource groups have been deployed
@@ -193,6 +211,10 @@ module hubNSGbastion './modules/Microsoft.Network/networkSecurityGroups/deploy.b
     location: location
     tags: allTags
     securityRules: contains(hubConfig, 'networkSecurityGroups') ? hubConfig.networkSecurityGroups.bastion : {}
+    enableDefaultTelemetry: false
+    diagnosticLogsRetentionInDays: 1
+    diagnosticLogCategoriesToEnable: [ 'allLogs' ]
+    diagnosticWorkspaceId: logAnalyticsWorkspace.outputs.resourceId
   }
   dependsOn: [
     // this is necessary to ensure all resource groups have been deployed
@@ -210,6 +232,10 @@ module hubNSGjumpbox './modules/Microsoft.Network/networkSecurityGroups/deploy.b
     location: location
     tags: allTags
     securityRules: contains(hubConfig, 'networkSecurityGroups') ? hubConfig.networkSecurityGroups.jumpbox : {}
+    enableDefaultTelemetry: false
+    diagnosticLogsRetentionInDays: 1
+    diagnosticLogCategoriesToEnable: [ 'allLogs' ]
+    diagnosticWorkspaceId: logAnalyticsWorkspace.outputs.resourceId
   }
   dependsOn: [
     // this is necessary to ensure all resource groups have been deployed
@@ -232,6 +258,7 @@ module hubRouteJumpbox './modules/Microsoft.Network/routeTables/deploy.bicep' = 
     location: location
     tags: allTags
     routes: contains(hubConfig, 'networkRoutes') ? hubConfig.networkRoutes.jumpbox : {}
+    enableDefaultTelemetry: false
   }
   dependsOn: [
     // this is necessary to ensure all resource groups have been deployed
@@ -267,6 +294,11 @@ module hubVnet './modules/Microsoft.Network/virtualNetworks/deploy.bicep' = {
     name: 'vn-${rsPrefix}-hub-01'
     location: location
     tags: allTags
+    enableDefaultTelemetry: false
+    diagnosticLogsRetentionInDays: 1
+    diagnosticLogCategoriesToEnable: [ 'allLogs' ]
+    diagnosticMetricsToEnable: [ 'AllMetrics' ]
+    diagnosticWorkspaceId: logAnalyticsWorkspace.outputs.resourceId
   }
   dependsOn: [
     // this is necessary to ensure all resource groups have been deployed
@@ -292,6 +324,11 @@ module pipAzFirewall './modules/Microsoft.Network/publicIPAddresses/deploy.bicep
     skuName: azFwConfig.publicIPSettings.skuName
     publicIPAllocationMethod: azFwConfig.publicIPSettings.publicIPAllocationMethod
     zones: azFwConfig.publicIPSettings.zones
+    enableDefaultTelemetry: false
+    diagnosticLogsRetentionInDays: 1
+    diagnosticLogCategoriesToEnable: [ 'allLogs' ]
+    diagnosticMetricsToEnable: [ 'AllMetrics' ]
+    diagnosticWorkspaceId: logAnalyticsWorkspace.outputs.resourceId
   }
   dependsOn: [
     // this is necessary to ensure all resource groups have been deployed
@@ -312,7 +349,10 @@ module azFirewall './modules/Microsoft.Network/azureFirewalls/deploy.bicep' = if
     vNetId: hubVnet.outputs.resourceId
     applicationRuleCollections: azFwConfig.applicationRuleCollections.value
     networkRuleCollections: azFwConfig.networkRuleCollections.value
-    enableDefaultTelemetry: true
+    enableDefaultTelemetry: false
+    diagnosticLogsRetentionInDays: 1
+    diagnosticLogCategoriesToEnable: [ 'allLogs' ]
+    diagnosticMetricsToEnable: [ 'AllMetrics' ]
     diagnosticWorkspaceId: logAnalyticsWorkspace.outputs.resourceId
   }
   dependsOn: [
@@ -339,6 +379,11 @@ module pipAzBastion './modules/Microsoft.Network/publicIPAddresses/deploy.bicep'
     skuName: azFwConfig.publicIPSettings.skuName
     publicIPAllocationMethod: azFwConfig.publicIPSettings.publicIPAllocationMethod
     zones: azFwConfig.publicIPSettings.zones
+    enableDefaultTelemetry: false
+    diagnosticLogsRetentionInDays: 1
+    diagnosticLogCategoriesToEnable: [ 'allLogs' ]
+    diagnosticMetricsToEnable: [ 'AllMetrics' ]
+    diagnosticWorkspaceId: logAnalyticsWorkspace.outputs.resourceId
   }
   dependsOn: [
     // this is necessary to ensure all resource groups have been deployed
@@ -357,7 +402,9 @@ module azBastion './modules/Microsoft.Network/bastionHosts/deploy.bicep' = if (d
     tags: allTags
     vNetId: hubVnet.outputs.resourceId
     azureBastionSubnetPublicIpId: pipAzBastion.outputs.resourceId
-    enableDefaultTelemetry: true
+    enableDefaultTelemetry: false
+    diagnosticLogsRetentionInDays: 1
+    diagnosticLogCategoriesToEnable: [ 'allLogs' ]
     diagnosticWorkspaceId: logAnalyticsWorkspace.outputs.resourceId
   }
   dependsOn: [
@@ -384,10 +431,13 @@ module vpnGateway './modules/Microsoft.Network/virtualNetworkGateways/deploy.bic
     virtualNetworkGatewayType:  vpngConfig.virtualNetworkGatewayType
     vNetResourceId: hubVnet.outputs.resourceId
     enableBgp:  vpngConfig.enableBgp
-    enableDefaultTelemetry: true
     vpnType:  vpngConfig.vpnType
     activeActive:  vpngConfig.activeActive
-    gatewayPipName: 'pip-${rsPrefix}-vpngw'  
+    gatewayPipName: 'pip-${rsPrefix}-vpngw'
+    enableDefaultTelemetry: false
+    diagnosticLogsRetentionInDays: 1
+    diagnosticMetricsToEnable: [ 'AllMetrics' ]
+    diagnosticWorkspaceId: logAnalyticsWorkspace.outputs.resourceId
   }
   dependsOn: [
     resourceGroups
@@ -416,7 +466,7 @@ module privateDnsZone './modules/Microsoft.Network/privateDnsZones/deploy.bicep'
     name: dnsZone
     location: 'global'
     tags: allTags
-    enableDefaultTelemetry: true
+    enableDefaultTelemetry: false
     virtualNetworkLinks: virtualNetworkLinks
   }
   dependsOn: [
@@ -476,6 +526,10 @@ module linuxJumpBox './modules/Microsoft.Compute/virtualMachines/deploy.bicep' =
     customData: vmJumpBoxLinuxInit
     adminUsername: vmJumpBoxConfig.linux.adminUsername
     adminPassword: adminPassword
+    enableDefaultTelemetry: false
+    diagnosticLogsRetentionInDays: 1
+    diagnosticWorkspaceId: logAnalyticsWorkspace.outputs.resourceId
+    
   } 
   dependsOn: [
     resourceGroups
@@ -518,6 +572,9 @@ module windowsJumpBox './modules/Microsoft.Compute/virtualMachines/deploy.bicep'
     extensionCustomScriptConfig: extensionCustomScriptConfig
     adminUsername: vmJumpBoxConfig.windows.adminUsername
     adminPassword: adminPassword
+    enableDefaultTelemetry: false
+    diagnosticLogsRetentionInDays: 1
+    diagnosticWorkspaceId: logAnalyticsWorkspace.outputs.resourceId
   } 
   dependsOn: [
     resourceGroups
@@ -534,17 +591,27 @@ module windowsJumpBox './modules/Microsoft.Compute/virtualMachines/deploy.bicep'
 
 
 //------------------------------------------------------------------------------
-// Output relevant values for the spoke network configuration
+// Create the output for the "sister" repo to deploy Secure Azure Batch
 
-@description('Output Spoke Network Configuration values')
-output hubInformation object = {
-  workspaceResourceId: logAnalyticsWorkspace.outputs.resourceId
-  appInsightsApplicationId: appInsights.outputs.applicationId
-  hubVnetResourceId: hubVnet.outputs.resourceId
-  fwPrivateIp: azFirewall.outputs.privateIp
+
+@description('output azBatch-starter hub configuration values')
+output azbatchStarter object = {
+  
+    diagnostics: {
+
+      /// if "logAnalyticsWorkspace" is specified, diagnostic logs will be sent to the workspace.
+      logAnalyticsWorkspace: {
+
+          /// log analytics workspace id
+          id: logAnalyticsWorkspace.outputs.resourceId
+      }
+
+      /// Application Insights is used to collect metrics and logs from the application.
+      appInsights: {
+          appId: appInsights.outputs.applicationId
+          instrumentationKey: appInsights.outputs.instrumentationKey
+      }
+    }
+
 }
-
-
-
-
 

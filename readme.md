@@ -19,7 +19,9 @@ Already Deployed:
 
 Currently Working On 
 
-- Initial Cleanup
+- Verify if Workspace ID is enabled on all resources
+- Propagate diagonstic settings
+- Initial Cleanup / Cleanup dependencies on other resources after code fix
 - VM Jumpboxes: Win (for Win: can we use a an image version which supports VTMP module?)
 - How to configure (static) RT on VHUB towards the FW private IP? But only, if AzFW has to be deployed? - currently part of the .jsonc file
 
@@ -38,8 +40,7 @@ Known Issues:
 
 Open
 
-- Verify if Workspace ID is enabled on all resources
-- Propagate diagonstic settings
+
 
 - VM Jumpbox: Can we apply a DSC config? -> allow RDP to Windows Images (in case we want to domain join them)
 

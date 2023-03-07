@@ -21,7 +21,7 @@
             "deleteOption": "Delete",
             "diskSizeGB": "128",
             "managedDisk": {
-                "storageAccountType": "Premium_LRS"
+                "storageAccountType": "Standard_LRS"
             }
         }
     },
@@ -58,7 +58,7 @@
         "value": {
             "publisher": "microsoftwindowsdesktop",
             "offer": "windows-11",
-            "sku": "win11-21h2-pro",
+            "sku": "win11-22h2-pro",
             "version": "latest"
         }
     },
