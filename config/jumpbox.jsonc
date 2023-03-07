@@ -63,7 +63,7 @@
         }
     },
     "deployJumpboxAddOns" : true,
-    "vmExtensionWindowsJumpboxUri": "https://raw.githubusercontent.com/mocelj/AzureBatch-Secured/main/artefacts/VM-Extensions-Windows/azure-batch-secured-jumpbox-setup.ps1",
+    "vmExtensionWindowsJumpboxUri": "https://raw.githubusercontent.com/mocelj/azbatch-starter-connectivity/main/artefacts/azure-batch-secured-jumpbox-setup.ps1",
     "vmExtensionCommandToExecute": "powershell -ExecutionPolicy Unrestricted -File azure-batch-secured-jumpbox-setup.ps1"
 
 }
