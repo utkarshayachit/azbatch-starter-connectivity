@@ -16,13 +16,17 @@ Already Deployed:
 - private DNS Zone (link to Hub Vnet)
 - Linux VM Jumpbox
 - Windows VM Jumpbox
+- Verify if Workspace ID is enabled on all resources
+- Propagate diagonstic settings
+
 
 Currently Working On 
 
-- Verify if Workspace ID is enabled on all resources
-- Propagate diagonstic settings
 - Initial Cleanup / Cleanup dependencies on other resources after code fix
 - VM Jumpboxes: Win (for Win: can we use a an image version which supports VTMP module?)
+- Use diagnostic.json config file
+
+
 - How to configure (static) RT on VHUB towards the FW private IP? But only, if AzFW has to be deployed? - currently part of the .jsonc file
 
 
