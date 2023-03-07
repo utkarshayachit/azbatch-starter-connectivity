@@ -47,10 +47,20 @@ param deployAzureBastion bool = true
 param deployVPNGateway bool = true
 
 @description('when true, a Linux VM will be deployed into the Hub Network')
-param deployLinuxJumpbox bool = false
+param deployLinuxJumpbox bool = true
 
 @description('when true, a Windows VM will be deployed into the Hub Network')
 param deployWindowsJumpbox bool = true
+
+@description('deployment timestamp')
+param timestamp string = utcNow('g')
+
+@secure()
+param adminPassword string 
+
+//------------------------------------------------------------------------------
+// Load exteranl configuration objects
+//------------------------------------------------------------------------------
 
 @description('hub configuration')
 param hubConfig object = loadJsonContent('config/hub.jsonc')
@@ -68,13 +78,7 @@ param pdnsZoneConfigBase string = loadTextContent('config/privateDnszone.json')
 param vmJumpBoxConfig object = loadJsonContent('config/jumpbox.jsonc')
 
 @description('Load the init script of the Linux Jumpbox')
-param vmJumpBoxLinuxInit string = loadTextContent('config/linux-vm-init-script.sh')
-
-@description('deployment timestamp')
-param timestamp string = utcNow('g')
-
-@secure()
-param adminPassword string 
+param vmJumpBoxLinuxInit string = loadTextContent('artefacts/linux-vm-init-script.sh')
 
 //------------------------------------------------------------------------------
 // Features: additive components
