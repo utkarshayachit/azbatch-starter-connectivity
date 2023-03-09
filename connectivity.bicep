@@ -586,7 +586,7 @@ module windowsJumpBox './modules/Microsoft.Compute/virtualMachines/deploy.bicep'
     diagnosticLogsRetentionInDays: retentionDays
     diagnosticWorkspaceId: logAnalyticsWorkspace.outputs.resourceId
     securityType: contains(vmJumpBoxConfig.windows,'securityType') ? vmJumpBoxConfig.windows.securityType : ''
-    secureBootEnabled: contains(vmJumpBoxConfig.windows, 'secureBootEnabled') ? vmJumpBoxConfig.windows.secureBootEnabled : false
+    secureBootEnabled: contains(vmJumpBoxConfig.windows, 'vTpmEnabled') ? vmJumpBoxConfig.windows.vTpmEnabled : false
   } 
   dependsOn: [
     resourceGroups
