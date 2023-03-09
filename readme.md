@@ -18,13 +18,15 @@ Already Deployed:
 - Windows VM Jumpbox
 - Verify if Workspace ID is enabled on all resources
 - Propagate diagonstic settings
+- Use diagnostic.json config file
+- Custom Script for Linux Jumpbox not executed? -> possibly wrong datatype for custom data (string expected, not base64) -> solved.
 
 
 Currently Working On 
 
 - Initial Cleanup / Cleanup dependencies on other resources after code fix
 - VM Jumpboxes: Win (for Win: can we use a an image version which supports VTMP module?)
-- Use diagnostic.json config file
+- Collect all relevant output for Secure Batch Repository (as input)
 
 
 - How to configure (static) RT on VHUB towards the FW private IP? But only, if AzFW has to be deployed? - currently part of the .jsonc file
@@ -32,7 +34,7 @@ Currently Working On
 
 Known Issues:
 
-- Custom Script for Linux Jumpbox not executed? -> possibly wrong datatype for custom data (string expected, not base64) -> solved.
+
 
 - 'AzureAsyncOperationWaiting' errors when Bastion and FW are both set to false - only VPNG to true
 
@@ -45,7 +47,6 @@ Known Issues:
 Open
 
 
-
 - VM Jumpbox: Can we apply a DSC config? -> allow RDP to Windows Images (in case we want to domain join them)
 
 - Create a Spoke Network incl. subnets and peering to Hub + link to private DNS? (AzBatch side)
@@ -54,7 +55,7 @@ Open
 - Review applicationRuleCollection in Azure Firewall
 - Review networkRuleCollection for Spoke to Spoke connectivity
 
-- Collect all relevant output for Secure Batch Repository (as input)
+
 
 - Implement schema validation?
 - GitHub Auto-Testing

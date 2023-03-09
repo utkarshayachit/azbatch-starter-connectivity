@@ -86,9 +86,6 @@ param vmJumpBoxConfig object = loadJsonContent('config/jumpbox.jsonc')
 @description('Load the init script of the Linux Jumpbox')
 param vmJumpBoxLinuxInit string = loadTextContent('artefacts/linux-vm-init-script.sh')
 
-
-
-// TO-DO: Use this object to populate the diag settings
 @description('Load diagnostic settings')
 param diagnosticConfig object = loadJsonContent('config/diagnostics.json')
 
@@ -135,6 +132,19 @@ var resourceGroupNames = {
 
 }
 
+// Transform the diagnostic settings config values in the appropriate format
+
+var enabledLogs = filter(diagnosticConfig.logs, item => item.enabled)
+var enabledLogsCategories = map(enabledLogs, item => item.categoryGroup)
+
+var enabledMetrics = filter(diagnosticConfig.metrics, item => item.enabled)
+var enabledMetricsCategories = map(enabledMetrics, item => item.category)
+
+// Retention Days are only read from the logs settings
+var retentionDaysRaw = map(enabledLogs, item => item.retentionPolicy.enabled ? item.retentionPolicy.days : 0)
+var retentionDays = max(union(retentionDaysRaw,[10]))
+
+
 //------------------------------------------------------------------------------
 // Resources
 //------------------------------------------------------------------------------
@@ -161,9 +171,9 @@ module logAnalyticsWorkspace './modules/Microsoft.OperationalInsights/workspaces
     location: location
     tags: allTags
     serviceTier: logAnalyticsServiceTier
-    diagnosticMetricsToEnable: [ 'AllMetrics' ]
-    diagnosticLogCategoriesToEnable: [ 'allLogs' ]
-    diagnosticLogsRetentionInDays: 1 
+    diagnosticMetricsToEnable: enabledMetricsCategories
+    diagnosticLogCategoriesToEnable: enabledLogsCategories
+    diagnosticLogsRetentionInDays: retentionDays
     enableDefaultTelemetry: false 
   }
   dependsOn: [
@@ -212,8 +222,8 @@ module hubNSGbastion './modules/Microsoft.Network/networkSecurityGroups/deploy.b
     tags: allTags
     securityRules: contains(hubConfig, 'networkSecurityGroups') ? hubConfig.networkSecurityGroups.bastion : {}
     enableDefaultTelemetry: false
-    diagnosticLogsRetentionInDays: 1
-    diagnosticLogCategoriesToEnable: [ 'allLogs' ]
+    diagnosticLogsRetentionInDays: retentionDays
+    diagnosticLogCategoriesToEnable: enabledLogsCategories
     diagnosticWorkspaceId: logAnalyticsWorkspace.outputs.resourceId
   }
   dependsOn: [
@@ -233,8 +243,8 @@ module hubNSGjumpbox './modules/Microsoft.Network/networkSecurityGroups/deploy.b
     tags: allTags
     securityRules: contains(hubConfig, 'networkSecurityGroups') ? hubConfig.networkSecurityGroups.jumpbox : {}
     enableDefaultTelemetry: false
-    diagnosticLogsRetentionInDays: 1
-    diagnosticLogCategoriesToEnable: [ 'allLogs' ]
+    diagnosticLogsRetentionInDays: retentionDays
+    diagnosticLogCategoriesToEnable: enabledLogsCategories
     diagnosticWorkspaceId: logAnalyticsWorkspace.outputs.resourceId
   }
   dependsOn: [
@@ -295,9 +305,9 @@ module hubVnet './modules/Microsoft.Network/virtualNetworks/deploy.bicep' = {
     location: location
     tags: allTags
     enableDefaultTelemetry: false
-    diagnosticLogsRetentionInDays: 1
-    diagnosticLogCategoriesToEnable: [ 'allLogs' ]
-    diagnosticMetricsToEnable: [ 'AllMetrics' ]
+    diagnosticLogsRetentionInDays: retentionDays
+    diagnosticLogCategoriesToEnable: enabledLogsCategories
+    diagnosticMetricsToEnable: enabledMetricsCategories
     diagnosticWorkspaceId: logAnalyticsWorkspace.outputs.resourceId
   }
   dependsOn: [
@@ -325,9 +335,9 @@ module pipAzFirewall './modules/Microsoft.Network/publicIPAddresses/deploy.bicep
     publicIPAllocationMethod: azFwConfig.publicIPSettings.publicIPAllocationMethod
     zones: azFwConfig.publicIPSettings.zones
     enableDefaultTelemetry: false
-    diagnosticLogsRetentionInDays: 1
-    diagnosticLogCategoriesToEnable: [ 'allLogs' ]
-    diagnosticMetricsToEnable: [ 'AllMetrics' ]
+    diagnosticLogsRetentionInDays: retentionDays
+    diagnosticLogCategoriesToEnable: enabledLogsCategories
+    diagnosticMetricsToEnable: enabledMetricsCategories
     diagnosticWorkspaceId: logAnalyticsWorkspace.outputs.resourceId
   }
   dependsOn: [
@@ -350,9 +360,9 @@ module azFirewall './modules/Microsoft.Network/azureFirewalls/deploy.bicep' = if
     applicationRuleCollections: azFwConfig.applicationRuleCollections.value
     networkRuleCollections: azFwConfig.networkRuleCollections.value
     enableDefaultTelemetry: false
-    diagnosticLogsRetentionInDays: 1
-    diagnosticLogCategoriesToEnable: [ 'allLogs' ]
-    diagnosticMetricsToEnable: [ 'AllMetrics' ]
+    diagnosticLogsRetentionInDays: retentionDays
+    diagnosticLogCategoriesToEnable: enabledLogsCategories
+    diagnosticMetricsToEnable: enabledMetricsCategories
     diagnosticWorkspaceId: logAnalyticsWorkspace.outputs.resourceId
   }
   dependsOn: [
@@ -380,9 +390,9 @@ module pipAzBastion './modules/Microsoft.Network/publicIPAddresses/deploy.bicep'
     publicIPAllocationMethod: azFwConfig.publicIPSettings.publicIPAllocationMethod
     zones: azFwConfig.publicIPSettings.zones
     enableDefaultTelemetry: false
-    diagnosticLogsRetentionInDays: 1
-    diagnosticLogCategoriesToEnable: [ 'allLogs' ]
-    diagnosticMetricsToEnable: [ 'AllMetrics' ]
+    diagnosticLogsRetentionInDays: retentionDays
+    diagnosticLogCategoriesToEnable: enabledLogsCategories
+    diagnosticMetricsToEnable: enabledMetricsCategories
     diagnosticWorkspaceId: logAnalyticsWorkspace.outputs.resourceId
   }
   dependsOn: [
@@ -403,8 +413,8 @@ module azBastion './modules/Microsoft.Network/bastionHosts/deploy.bicep' = if (d
     vNetId: hubVnet.outputs.resourceId
     azureBastionSubnetPublicIpId: pipAzBastion.outputs.resourceId
     enableDefaultTelemetry: false
-    diagnosticLogsRetentionInDays: 1
-    diagnosticLogCategoriesToEnable: [ 'allLogs' ]
+    diagnosticLogsRetentionInDays: retentionDays
+    diagnosticLogCategoriesToEnable: enabledLogsCategories
     diagnosticWorkspaceId: logAnalyticsWorkspace.outputs.resourceId
   }
   dependsOn: [
@@ -435,8 +445,8 @@ module vpnGateway './modules/Microsoft.Network/virtualNetworkGateways/deploy.bic
     activeActive:  vpngConfig.activeActive
     gatewayPipName: 'pip-${rsPrefix}-vpngw'
     enableDefaultTelemetry: false
-    diagnosticLogsRetentionInDays: 1
-    diagnosticMetricsToEnable: [ 'AllMetrics' ]
+    diagnosticLogsRetentionInDays: retentionDays
+    diagnosticMetricsToEnable: enabledMetricsCategories
     diagnosticWorkspaceId: logAnalyticsWorkspace.outputs.resourceId
   }
   dependsOn: [
@@ -527,7 +537,7 @@ module linuxJumpBox './modules/Microsoft.Compute/virtualMachines/deploy.bicep' =
     adminUsername: vmJumpBoxConfig.linux.adminUsername
     adminPassword: adminPassword
     enableDefaultTelemetry: false
-    diagnosticLogsRetentionInDays: 1
+    diagnosticLogsRetentionInDays: retentionDays
     diagnosticWorkspaceId: logAnalyticsWorkspace.outputs.resourceId
     
   } 
@@ -573,8 +583,10 @@ module windowsJumpBox './modules/Microsoft.Compute/virtualMachines/deploy.bicep'
     adminUsername: vmJumpBoxConfig.windows.adminUsername
     adminPassword: adminPassword
     enableDefaultTelemetry: false
-    diagnosticLogsRetentionInDays: 1
+    diagnosticLogsRetentionInDays: retentionDays
     diagnosticWorkspaceId: logAnalyticsWorkspace.outputs.resourceId
+    securityType: contains(vmJumpBoxConfig.windows,'securityType') ? vmJumpBoxConfig.windows.securityType : ''
+    secureBootEnabled: contains(vmJumpBoxConfig.windows, 'secureBootEnabled') ? vmJumpBoxConfig.windows.secureBootEnabled : false
   } 
   dependsOn: [
     resourceGroups
