@@ -44,7 +44,7 @@ param useSingleResourceGroup bool = false
 param logAnalyticsServiceTier string = 'PerGB2018'
 
 @description('when true, an Azure Firewall will be deployed')
-param deployAzureFirewall bool = true
+param deployAzureFirewall bool =  true
 
 @description('when true, an Azure Bastion will be deployed')
 param deployAzureBastion bool = true
@@ -322,31 +322,14 @@ module hubVnet './modules/Microsoft.Network/virtualNetworks/deploy.bicep' = {
 
 //------------------------------------------------------------------------------
 // Deploy Azure Firewall Resources
-
-@description('Deploy a public IP for Azure Firewall')
-module pipAzFirewall './modules/Microsoft.Network/publicIPAddresses/deploy.bicep' = if (deployAzureFirewall) {
-  scope: resourceGroup(resourceGroupNames.networkHubRG.name)
-  name: '${dplPrefix}-pipAzFirewall'
-  params: {
-    name: 'pip-${rsPrefix}-azfw'
-    location: location
-    tags: allTags
-    skuName: azFwConfig.publicIPSettings.skuName
-    publicIPAllocationMethod: azFwConfig.publicIPSettings.publicIPAllocationMethod
-    zones: azFwConfig.publicIPSettings.zones
-    enableDefaultTelemetry: false
-    diagnosticLogsRetentionInDays: retentionDays
-    diagnosticLogCategoriesToEnable: enabledLogsCategories
-    diagnosticMetricsToEnable: enabledMetricsCategories
-    diagnosticWorkspaceId: logAnalyticsWorkspace.outputs.resourceId
-  }
-  dependsOn: [
-    // this is necessary to ensure all resource groups have been deployed
-    // before we attempt to deploy resources under those resource groups.
-    resourceGroups
-  ]
-}
   
+var pipAzFwAddressObject =  {
+  name: 'pip-${rsPrefix}-azfw'
+  publicIPAllocationMethod: hubConfig.publicIPSettings.publicIPAllocationMethod
+  skuName: hubConfig.publicIPSettings.skuName
+  skuTier: hubConfig.publicIPSettings.skuTier
+}
+
 @description('Deploy Azure Firewall service')
 module azFirewall './modules/Microsoft.Network/azureFirewalls/deploy.bicep' = if (deployAzureFirewall) {
   scope: resourceGroup(resourceGroupNames.networkHubRG.name)
@@ -355,10 +338,11 @@ module azFirewall './modules/Microsoft.Network/azureFirewalls/deploy.bicep' = if
     name: 'afw-${rsPrefix}'
     location: location
     tags: allTags
-    azureFirewallSubnetPublicIpId: pipAzFirewall.outputs.resourceId
+    publicIPAddressObject: pipAzFwAddressObject
     vNetId: hubVnet.outputs.resourceId
     applicationRuleCollections: azFwConfig.applicationRuleCollections.value
     networkRuleCollections: azFwConfig.networkRuleCollections.value
+    zones:  hubConfig.publicIPSettings.zones
     enableDefaultTelemetry: false
     diagnosticLogsRetentionInDays: retentionDays
     diagnosticLogCategoriesToEnable: enabledLogsCategories
@@ -370,36 +354,15 @@ module azFirewall './modules/Microsoft.Network/azureFirewalls/deploy.bicep' = if
     // before we attempt to deploy resources under those resource groups.
     resourceGroups
     hubVnet
-    pipAzFirewall
     logAnalyticsWorkspace
   ]
 }
 
-//------------------------------------------------------------------------------
-// Deploy Azure Bastion Resources
-
-@description('Deploy a public IP for Azure Bastion')
-module pipAzBastion './modules/Microsoft.Network/publicIPAddresses/deploy.bicep' = if (deployAzureBastion) {
-  scope: resourceGroup(resourceGroupNames.networkHubRG.name)
-  name: '${dplPrefix}-pipAzBastion'
-  params: {
-    name: 'pip-${rsPrefix}-azbastion'
-    location: location
-    tags: allTags
-    skuName: azFwConfig.publicIPSettings.skuName
-    publicIPAllocationMethod: azFwConfig.publicIPSettings.publicIPAllocationMethod
-    zones: azFwConfig.publicIPSettings.zones
-    enableDefaultTelemetry: false
-    diagnosticLogsRetentionInDays: retentionDays
-    diagnosticLogCategoriesToEnable: enabledLogsCategories
-    diagnosticMetricsToEnable: enabledMetricsCategories
-    diagnosticWorkspaceId: logAnalyticsWorkspace.outputs.resourceId
-  }
-  dependsOn: [
-    // this is necessary to ensure all resource groups have been deployed
-    // before we attempt to deploy resources under those resource groups.
-    resourceGroups
-  ]
+var pipAzBastionAddressObject =  {
+  name: 'pip-${rsPrefix}-azbastion'
+  publicIPAllocationMethod: hubConfig.publicIPSettings.publicIPAllocationMethod
+  skuName: hubConfig.publicIPSettings.skuName
+  skuTier: hubConfig.publicIPSettings.skuTier
 }
 
 @description('Deploy Azure Bastion service')
@@ -411,7 +374,7 @@ module azBastion './modules/Microsoft.Network/bastionHosts/deploy.bicep' = if (d
     location: location
     tags: allTags
     vNetId: hubVnet.outputs.resourceId
-    azureBastionSubnetPublicIpId: pipAzBastion.outputs.resourceId
+    publicIPAddressObject: pipAzBastionAddressObject
     enableDefaultTelemetry: false
     diagnosticLogsRetentionInDays: retentionDays
     diagnosticLogCategoriesToEnable: enabledLogsCategories
@@ -419,10 +382,8 @@ module azBastion './modules/Microsoft.Network/bastionHosts/deploy.bicep' = if (d
   }
   dependsOn: [
     resourceGroups
-    pipAzBastion
     hubVnet
     logAnalyticsWorkspace
-    azFirewall
   ]
 }
 
@@ -434,7 +395,7 @@ module vpnGateway './modules/Microsoft.Network/virtualNetworkGateways/deploy.bic
   scope: resourceGroup(resourceGroupNames.networkHubRG.name)
   name: '${dplPrefix}-vpnGateway'
   params: {
-    name: 'vpng-${rsPrefix}'
+    name: 'vpngw-${rsPrefix}'
     location: location
     tags: allTags
     virtualNetworkGatewaySku:  vpngConfig.virtualNetworkGatewaySku
@@ -544,11 +505,6 @@ module linuxJumpBox './modules/Microsoft.Compute/virtualMachines/deploy.bicep' =
   dependsOn: [
     resourceGroups
     hubVnet
-    hubNSGjumpbox
-    azFirewall
-    azBastion
-    privateDnsZone
-    vpnGateway
   ]
 }
 
@@ -592,16 +548,8 @@ module windowsJumpBox './modules/Microsoft.Compute/virtualMachines/deploy.bicep'
   dependsOn: [
     resourceGroups
     hubVnet
-    hubNSGjumpbox
-    azFirewall
-    azBastion
-    privateDnsZone
-    vpnGateway
-    linuxJumpBox
   ]
 }
-
-
 
 //------------------------------------------------------------------------------
 // Create the output for the "sister" repo to deploy Secure Azure Batch

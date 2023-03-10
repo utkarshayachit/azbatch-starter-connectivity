@@ -2,18 +2,6 @@
  
  /// This configuration file is intended to provide information about the Azure Firewall resources. 
 
-
-    "publicIPSettings" : {
-        "skuName": "Standard",
-        "publicIPAllocationMethod": "Static",
-        "zones": [
-            "1",
-            "2",
-            "3"
-        ]
-    } ,
-
-
     "applicationRuleCollections": {
         "value": [
             {
