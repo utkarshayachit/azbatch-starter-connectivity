@@ -205,12 +205,9 @@ module appInsights './modules/Microsoft.Insights/components/deploy.bicep' = {
   ]
 }
 
-//To-Do: How to verify if .bastion rule is part of the NSG config object?
-
 //------------------------------------------------------------------------------
 // Process hub network network security groups
 
-var hasNsg = contains(hubConfig, 'networkSecurityGroups') && length(hubConfig.networkSecurityGroups) > 0
 
 @description('Deploy Hub Bastion NSG')
 module hubNSGbastion './modules/Microsoft.Network/networkSecurityGroups/deploy.bicep' = {
@@ -257,8 +254,6 @@ module hubNSGjumpbox './modules/Microsoft.Network/networkSecurityGroups/deploy.b
 //------------------------------------------------------------------------------
 // Process hub network route tables
 
-var hasRoutes = contains(hubConfig, 'networkRoutes') && length(hubConfig.networkRoutes) > 0
-
 @description('Deploy Hub Jumpbox route')
 module hubRouteJumpbox './modules/Microsoft.Network/routeTables/deploy.bicep' = {
   scope: resourceGroup(resourceGroupNames.networkHubRG.name)
@@ -280,9 +275,6 @@ module hubRouteJumpbox './modules/Microsoft.Network/routeTables/deploy.bicep' = 
 //------------------------------------------------------------------------------
 // Process hub virtual network and subnets
 
-// not yet working
-//var enabledHubSubnets = union(map(filter(items(hubConfig.hubNetwork.subnets), arg => arg.value.enabled), arg => arg.value.name), [])
-
 var txtHubConfig_base = loadTextContent('config/hub.jsonc')
 var txtHubConfig_nsg_bastion = replace(txtHubConfig_base, '--nsg-bastion--', '${hubNSGbastion.outputs.resourceId}')
 var txtHubConfig_nsg_jumpbox = replace(txtHubConfig_nsg_bastion, '--nsg-jumpbox--', '${hubNSGjumpbox.outputs.resourceId}')
@@ -291,8 +283,6 @@ var txtHubConfig_rt_jumpbox = replace(txtHubConfig_nsg_jumpbox, '--rt-jumpbox--'
 var transformedHubConfig = json(txtHubConfig_rt_jumpbox)
 var hubSubnets = transformedHubConfig.hubNetwork.subnets.value
 
-// above has to be rewritten - task - how to inject the nsg and rt ids into the config json object?
-// did not find a function which would transform a json object back to a string (but it is already late :-)
 
 @description('Deploy Hub virtual network incl. subnets')
 module hubVnet './modules/Microsoft.Network/virtualNetworks/deploy.bicep' = {

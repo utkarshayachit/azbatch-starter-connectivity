@@ -202,8 +202,7 @@
                     "addressPrefix": "10.1.1.0/24",
                     "name": "GatewaySubnet",
                     "privateEndpointNetworkPolicies": "Enabled",
-                    "privateLinkServiceNetworkPolicies": "Enabled",
-                    "enabled": true
+                    "privateLinkServiceNetworkPolicies": "Enabled"
                 },
 
                 // (Azure) Firewall Subnet
@@ -212,8 +211,7 @@
                     "addressPrefix": "10.1.2.0/24",
                     "name": "AzureFirewallSubnet",
                     "privateEndpointNetworkPolicies": "Enabled",
-                    "privateLinkServiceNetworkPolicies": "Enabled",
-                    "enabled": true
+                    "privateLinkServiceNetworkPolicies": "Enabled"
                 },
 
 
@@ -224,12 +222,11 @@
                     "name": "AzureBastionSubnet",
                     "privateEndpointNetworkPolicies": "Enabled",
                     "privateLinkServiceNetworkPolicies": "Enabled",
-                    "networkSecurityGroupId": "--nsg-bastion--", // will be replaced wit the id during runtime
-                    "enabled": true
+                    "networkSecurityGroupId": "--nsg-bastion--" // will be replaced wit the id during runtime
                 },
 
 
-                // Jumpbox Subnet
+                // Jumpbox Subnet: note: if you don't plan to deploy any jumpbox, remove or comment out the networkSecurityGroupId and routeTableId
 
                 {
                     "addressPrefix": "10.1.4.0/24",   // if you change this IP, pls ensure the AzFirewall rule in azFriewall.jsonc is modified, too.
@@ -237,8 +234,7 @@
                     "privateEndpointNetworkPolicies": "Enabled",
                     "privateLinkServiceNetworkPolicies": "Enabled",
                     "networkSecurityGroupId": "--nsg-jumpbox--", // will be replaced wit the id during runtime
-                    "routeTableId":  "--rt-jumpbox--",         // will be replaced wit the id during runtime, comment out if no RT or FW deployed
-                    "enabled": true
+                    "routeTableId":  "--rt-jumpbox--"         // will be replaced wit the id during runtime, comment out if no RT or FW deployed
                 }
 
             ]

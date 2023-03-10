@@ -1,6 +1,8 @@
+# Currently Working On 
 
+- Design Question: How to allow flexibility in not deploying JumpBox, VpnGw, AzFw but keep the configurations for UDR, NSG etc in the config file?
 
-Already Deployed: 
+# Already Deployed: 
 
 - Resource Groups
 - NSGs, Routes
@@ -25,17 +27,9 @@ Already Deployed:
 - Collect all relevant output for Secure Batch Repository (as input)
 - VM Jumpboxes: Win (for Win: can we use a an image version which supports VTMP module?)
 - Initial Cleanup / Cleanup dependencies on other resources after code fix
+- Design Decision: Always create all subnets, nsgs and routes, so no status is needed in config file
 
-
-Currently Working On 
-
-- Create NSGs and Routes only if flag is set for deployment
-
-- How to configure (static) RT on VHUB towards the FW private IP? But only, if AzFW has to be deployed? - currently part of the .jsonc file
-- Example: review line 284 - can we solve this in a nicer way
-
-
-Open
+# Open
 
 - Create a Spoke Network incl. subnets and peering to Hub + link to private DNS? (AzBatch side)
 
@@ -45,11 +39,14 @@ Open
 - Implement schema validation?
 - GitHub Auto-Testing
 
-- Nice to Have: 
+# Nice to Have: 
+
 
 - VM Jumpbox: Can we apply a DSC config? -> allow RDP to Windows Images (in case we want to domain join them)
 
-Known Issues to feedback to Libs Team:
+# Known Issues 
+
+to feedback to Libs Team:
 
 -> might be related to LibModule for VNets -> added batchsize(1) annotation to force the for loop to execute 1 subnet at the time
 -> file PR for custom extension: CodeToExecute was not part of the final parameter set.
