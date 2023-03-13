@@ -2,6 +2,9 @@
 
 - Design Question: How to allow flexibility in not deploying JumpBox, VpnGw, AzFw but keep the configurations for UDR, NSG etc in the config file?
 
+- Optional Folder: In case we need a ready to be used spoke vnet w/o Azure Batch configuration
+
+
 # Already Deployed: 
 
 - Resource Groups
