@@ -564,5 +564,35 @@ output azbatchStarter object = {
       }
     }
 
+    network: {
+
+        /// user defined routes to use as first hop for the spoke vnets. This is useful for routing traffic to
+        /// firewall, for example. Routes are specified as a list of objects in the `Route` format defined
+        /// here: https://learn.microsoft.com/en-us/azure/templates/microsoft.network/routetables?tabs=bicep&pivots=deployment-language-bicep#route
+
+      routes: [
+        {
+          name: 'r-nexthop-to-fw'
+          properties: {
+            nextHopType: 'VirtualAppliance'
+            addressPrefix: '0.0.0.0/0'
+            nextHopIpAddress: azFirewall.outputs.privateIp
+          }
+        }
+      ]
+
+      // "peerings" specifies vnet configurations to peer with.
+
+      peerings: [
+        {
+          group: resourceGroupNames.networkHubRG.name 
+          name: hubVnet.outputs.name
+          useGateway: true
+        }
+      ]
+
+
+    }
+
 }
 
