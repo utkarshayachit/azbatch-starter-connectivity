@@ -1,21 +1,8 @@
 {
-    /// Spoke Configuration
-    
-    // "publicIPSettings" : {
-    //     "skuName": "Standard",
-    //     "skuTier": "Regional",
-    //     "publicIPAllocationMethod": "Static",
-    //     "zones": [
-    //         "1",
-    //         "2",
-    //         "3"
-    //     ]
-    // } ,
-
     
     "networkSecurityGroups": {
 
-        "bastion": [
+        "spokeDefault": [
             
             {
                 "name": "bastion-in-allow",

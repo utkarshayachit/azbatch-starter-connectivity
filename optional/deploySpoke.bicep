@@ -127,6 +127,7 @@ module spokeDefaultNSG '../modules/Microsoft.Network/networkSecurityGroups/deplo
   params: {
     name: 'nsg-${rsPrefix}-default'
     location: location
+    securityRules: spokeConfig.networkSecurityGroups.spokeDefault
     tags: allTags
     enableDefaultTelemetry: false
     diagnosticLogsRetentionInDays: retentionDays
@@ -135,7 +136,7 @@ module spokeDefaultNSG '../modules/Microsoft.Network/networkSecurityGroups/deplo
   }
 }
 
-// Deploy the Spoke Network and pair it with the hub network
+// Deploy the Spoke Network and peer it with the hub network
 //------------------------------------------------------------------------------
 
 var txtSpokeConfig_base = loadTextContent('config/spoke.jsonc')
@@ -144,8 +145,33 @@ var txtSpokeConfig_nsg_default = replace(txtSpokeConfig_base, '--nsg-default--',
 
 var spokeSubnets = json(txtSpokeConfig_nsg_default).spokeNetwork.subnets.value
 
+
+resource vnetHub 'Microsoft.Network/virtualNetworks@2022-07-01' existing = {
+  name: 'vn-${rsPrefix}-hub-01'
+  scope: resourceGroup(resourceGroupNames.networkHubRG.name)
+}
+
+
+// TODO: Check Gateway transit setting
+
+var hubSpokePeering = [
+  
+  {
+    allowForwardedTraffic: true
+    allowGatewayTransit: false
+    allowVirtualNetworkAccess: true
+    remotePeeringAllowForwardedTraffic: true
+    remotePeeringAllowVirtualNetworkAccess: true
+    remotePeeringEnabled: true
+    remotePeeringName: 'peer-${rsPrefix}-hubSpoke01'
+    remoteVirtualNetworkId: vnetHub.id
+    useRemoteGateways: false
+  }
+
+]
+
 @description('Deploy spoke virtual network incl. subnets')
-module SpokeVnnet '../modules/Microsoft.Network/virtualNetworks/deploy.bicep' = {
+module SpokeVnet '../modules/Microsoft.Network/virtualNetworks/deploy.bicep' = {
   scope: resourceGroup(resourceGroupNames.networkSpokeRG.name)
   name: '${dplPrefix}-spoke-01-network-vnet'
   params: {
@@ -153,6 +179,7 @@ module SpokeVnnet '../modules/Microsoft.Network/virtualNetworks/deploy.bicep' = 
     subnets: spokeSubnets
     name: 'vn-${rsPrefix}-spoke-01'
     location: location
+    virtualNetworkPeerings: hubSpokePeering
     tags: allTags
     enableDefaultTelemetry: false
     diagnosticLogsRetentionInDays: retentionDays
@@ -166,3 +193,10 @@ module SpokeVnnet '../modules/Microsoft.Network/virtualNetworks/deploy.bicep' = 
     spokeDefaultNSG
   ]
 }
+
+//  Link the Spoke Network to the private DNS Zone in the Hub
+//------------------------------------------------------------------------------
+
+
+output hubID string = vnetHub.id
+output hubGuid string = vnetHub.properties.resourceGuid
