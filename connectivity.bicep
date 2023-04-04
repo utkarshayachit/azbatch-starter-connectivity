@@ -594,5 +594,4 @@ output azbatchStarter object = {
 
     }
 
-}
-
+} 
