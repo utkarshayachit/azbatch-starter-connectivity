@@ -127,7 +127,7 @@ module spokeDefaultNSG '../modules/Microsoft.Network/networkSecurityGroups/deplo
   params: {
     name: 'nsg-${rsPrefix}-default'
     location: location
-    securityRules: spokeConfig.networkSecurityGroups.spokeDefault
+    securityRules: spokeConfig.networkSecurityGroups.defaultNSG
     tags: allTags
     enableDefaultTelemetry: false
     diagnosticLogsRetentionInDays: retentionDays
