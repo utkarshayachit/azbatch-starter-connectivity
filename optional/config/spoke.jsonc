@@ -1,171 +1,129 @@
 {
-    /// Spoke Configuration
-    
-    // "publicIPSettings" : {
-    //     "skuName": "Standard",
-    //     "skuTier": "Regional",
-    //     "publicIPAllocationMethod": "Static",
-    //     "zones": [
-    //         "1",
-    //         "2",
-    //         "3"
-    //     ]
-    // } ,
-
-    
+   
     "networkSecurityGroups": {
 
-        "bastion": [
-            
+        "default-nsg": [
             {
-                "name": "bastion-in-allow",
+                "name": "AllowVnetInBound",
                 "properties": {
-                    "protocol": "Tcp",
-                    "sourcePortRange": "*",
-                    "sourceAddressPrefix": "Internet",
-                    "destinationPortRange": "443",
-                    "destinationAddressPrefix": "*",
-                    "access": "Allow",
-                    "priority": 100,
-                    "direction": "Inbound"
-                }
-            },
-
-            {
-                "name": "bastion-control-in-allow",
-                "properties": {
-                    "protocol": "Tcp",
-                    "sourcePortRange": "*",
-                    "sourceAddressPrefix": "GatewayManager",
-                    "destinationPortRange": "443",
-                    "destinationAddressPrefix": "*",
-                    "access": "Allow",
-                    "priority": 120,
-                    "direction": "Inbound"
-                }
-            },
-            
-            {
-                "name": "bastion-in-host",
-                "properties": {
+                    "description": "Allow inbound traffic from all VMs in VNET",
                     "protocol": "*",
                     "sourcePortRange": "*",
-                    "destinationPortRanges": [
-                        "8080",
-                        "5701"
-                    ],
+                    "destinationPortRange": "*",
                     "sourceAddressPrefix": "VirtualNetwork",
                     "destinationAddressPrefix": "VirtualNetwork",
                     "access": "Allow",
-                    "priority": 130,
-                    "direction": "Inbound"
+                    "priority": 65000,
+                    "direction": "Inbound",
+                    "sourcePortRanges": [],
+                    "destinationPortRanges": [],
+                    "sourceAddressPrefixes": [],
+                    "destinationAddressPrefixes": []
                 }
-              },
-
-              {
-                "name": "bastion-vnet-out-allow",
+            },
+            {
+                "name": "AllowAzureLoadBalancerInBound",
                 "properties": {
-                    "protocol": "Tcp",
-                    "sourcePortRange": "*",
-                    "sourceAddressPrefix": "*",
-                    "destinationPortRanges": [
-                        "22",
-                        "3389"
-                    ],
-                    "destinationAddressPrefix": "VirtualNetwork",
-                    "access": "Allow",
-                    "priority": 100,
-                    "direction": "Outbound"
-                }
-              },
-
-              {
-                "name": "bastion-azure-out-allow",
-                "properties": {
-                    "protocol": "Tcp",
-                    "sourcePortRange": "*",
-                    "sourceAddressPrefix": "*",
-                    "destinationPortRange": "443",
-                    "destinationAddressPrefix": "AzureCloud",
-                    "access": "Allow",
-                    "priority": 120,
-                    "direction": "Outbound"
-                }
-              },
-
-              {
-                "name": "bastion-out-host",
-                "properties": {
+                    "description": "Allow inbound traffic from azure load balancer",
                     "protocol": "*",
                     "sourcePortRange": "*",
-                    "destinationPortRanges": [
-                        "8080",
-                        "5701"
-                    ],
-                    "sourceAddressPrefix": "VirtualNetwork",
-                    "destinationAddressPrefix": "VirtualNetwork",
+                    "destinationPortRange": "*",
+                    "sourceAddressPrefix": "AzureLoadBalancer",
+                    "destinationAddressPrefix": "*",
                     "access": "Allow",
-                    "priority": 130,
-                    "direction": "Outbound"
+                    "priority": 65001,
+                    "direction": "Inbound",
+                    "sourcePortRanges": [],
+                    "destinationPortRanges": [],
+                    "sourceAddressPrefixes": [],
+                    "destinationAddressPrefixes": []
                 }
-              },
-
-              {
-                "name": "bastion-out-deny",
+            },
+            {
+                "name": "DenyAllInBound",
                 "properties": {
+                    "description": "Deny all inbound traffic",
                     "protocol": "*",
                     "sourcePortRange": "*",
                     "destinationPortRange": "*",
                     "sourceAddressPrefix": "*",
                     "destinationAddressPrefix": "*",
                     "access": "Deny",
-                    "priority": 1000,
-                    "direction": "Outbound"
+                    "priority": 65500,
+                    "direction": "Inbound",
+                    "sourcePortRanges": [],
+                    "destinationPortRanges": [],
+                    "sourceAddressPrefixes": [],
+                    "destinationAddressPrefixes": []
                 }
-              }
+            },
+            {
+                "name": "AllowVnetOutBound",
+                "properties": {
+                    "description": "Allow outbound traffic from all VMs to all VMs in VNET",
+                    "protocol": "*",
+                    "sourcePortRange": "*",
+                    "destinationPortRange": "*",
+                    "sourceAddressPrefix": "VirtualNetwork",
+                    "destinationAddressPrefix": "VirtualNetwork",
+                    "access": "Allow",
+                    "priority": 65000,
+                    "direction": "Outbound",
+                    "sourcePortRanges": [],
+                    "destinationPortRanges": [],
+                    "sourceAddressPrefixes": [],
+                    "destinationAddressPrefixes": []
+                }
+            },
+            {
+                "name": "AllowInternetOutBound",
+                "properties": {
+                    "description": "Allow outbound traffic from all VMs to Internet",
+                    "protocol": "*",
+                    "sourcePortRange": "*",
+                    "destinationPortRange": "*",
+                    "sourceAddressPrefix": "*",
+                    "destinationAddressPrefix": "Internet",
+                    "access": "Allow",
+                    "priority": 65001,
+                    "direction": "Outbound",
+                    "sourcePortRanges": [],
+                    "destinationPortRanges": [],
+                    "sourceAddressPrefixes": [],
+                    "destinationAddressPrefixes": []
+                }
+            },
+            {
+                "name": "DenyAllOutBound",
+                "properties": {
+                    "description": "Deny all outbound traffic",
+                    "protocol": "*",
+                    "sourcePortRange": "*",
+                    "destinationPortRange": "*",
+                    "sourceAddressPrefix": "*",
+                    "destinationAddressPrefix": "*",
+                    "access": "Deny",
+                    "priority": 65500,
+                    "direction": "Outbound",
+                    "sourcePortRanges": [],
+                    "destinationPortRanges": [],
+                    "sourceAddressPrefixes": [],
+                    "destinationAddressPrefixes": []
+                }
+            }
+         
 
         ],
        
-        "jumpbox": [
+        "simplified-batch": [
             
-            {
-                "name": "bastion-in-vnet",
-                "properties": {
-                    "protocol": "Tcp",
-                    "sourcePortRange": "*",
-                    "sourceAddressPrefix":  "10.1.3.0/24",
-                    "destinationPortRanges": [
-                        "22",
-                        "3389"
-                    ],
-                    "destinationAddressPrefix": "*",
-                    "access": "Allow",
-                    "priority": 100,
-                    "direction": "Inbound"
-                }
-            },
-
-
-            {
-                "name": "DenyAllInBound",
-                "properties": {
-                    "protocol": "Tcp",
-                    "sourcePortRange": "*",
-                    "sourceAddressPrefix": "*",
-                    "destinationPortRange": "443",
-                    "destinationAddressPrefix": "*",
-                    "access": "Deny",
-                    "priority": 1000,
-                    "direction": "Inbound"
-                }
-              }
         ]
         
     },
     
     "networkRoutes": {
         
-        "jumpbox": [
+        "default-nva": [
 
             {
                 "name": "DefaultRoute",
