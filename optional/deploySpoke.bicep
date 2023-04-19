@@ -198,5 +198,7 @@ module SpokeVnet '../modules/Microsoft.Network/virtualNetworks/deploy.bicep' = {
 //------------------------------------------------------------------------------
 
 
+
+
 output hubID string = vnetHub.id
 output hubGuid string = vnetHub.properties.resourceGuid
