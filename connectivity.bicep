@@ -78,7 +78,7 @@ param azFwConfig object = loadJsonContent('config/azFirewall.jsonc')
 param vpngConfig object = loadJsonContent('config/vpnGateway.jsonc')
 
 @description('Private DNS Zone Configuration')
-param pdnsZoneConfigBase string = loadTextContent('config/privateDnszone.json')
+param pdnsZoneConfigBase string = loadTextContent('config/privateDNSzone.json')
 
 @description('Jumpbox Configuration settings')
 param vmJumpBoxConfig object = loadJsonContent('config/jumpbox.jsonc')
