@@ -3,7 +3,6 @@
 "privateDnsZones": {
     "value": [
         "privatelink.xxxxxx.azmk8s.io", 
-        "privatelink.xxxxxx.batch.azure.com", 
         "privatelink.batch.azure.com",  
         "privatelink.azurecr.io",
         "privatelink.blob.core.windows.net",
