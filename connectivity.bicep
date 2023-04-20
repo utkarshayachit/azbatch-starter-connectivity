@@ -591,7 +591,10 @@ output azbatchStarter object = {
         }
       ]
 
-
+      // "dnsZones" passes information about dns zones already created in the hub
+      dnsZones: map(pdnsZoneConfig.privateDnsZones.value, zoneName => {
+        group: resourceGroupNames.networkHubRG.name
+        name: zoneName
+      })
     }
-
 } 
