@@ -1,5 +1,8 @@
 # Currently Working On 
 
+
+- ADD dns resolver to allow private endpoint resolution when using p2s vpn connectivity. 
+
 - Design Question: How to allow flexibility in not deploying JumpBox, VpnGw, AzFw but keep the configurations for UDR, NSG etc in the config file?
 
 - Optional Folder: In case we need a ready to be used spoke vnet w/o Azure Batch configuration
