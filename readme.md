@@ -1,7 +1,8 @@
 # Currently Working On 
 
 
-- ADD dns resolver to allow private endpoint resolution when using p2s vpn connectivity. 
+- Testing not done yet, just checked sussesful deployment in the bicep template
+- Deployed: dns resolver to allow private endpoint resolution when using p2s vpn connectivity. 
 
 - Design Question: How to allow flexibility in not deploying JumpBox, VpnGw, AzFw but keep the configurations for UDR, NSG etc in the config file?
 

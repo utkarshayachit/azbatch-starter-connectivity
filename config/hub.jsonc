@@ -235,6 +235,23 @@
                     "privateLinkServiceNetworkPolicies": "Enabled",
                     "networkSecurityGroupId": "--nsg-jumpbox--", // will be replaced wit the id during runtime
                     "routeTableId":  "--rt-jumpbox--"         // will be replaced wit the id during runtime, comment out if no RT or FW deployed
+                },
+
+                // Subnet for private dns resolver
+
+                {
+                    "addressPrefix": "10.1.5.0/24",  
+                    "name": "sn-dnspr",             // if you change the name of subnet and you plan to deploy a vpnGW, please adjust the name in the dnsprInboundEndpoint variable
+                    "privateEndpointNetworkPolicies": "Enabled",
+                    "privateLinkServiceNetworkPolicies": "Enabled",
+                    "delegations": [
+                        {
+                            "name": "delegation",
+                            "properties": {
+                                "serviceName":  "Microsoft.Network/dnsResolvers"
+                            }
+                        }
+                      ]
                 }
 
             ]

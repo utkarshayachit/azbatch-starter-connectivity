@@ -406,6 +406,35 @@ module vpnGateway './modules/Microsoft.Network/virtualNetworkGateways/deploy.bic
   ]
 }
 
+// Deploy also a DNS Resolver, in case a VPN Gateway is deployed to ensure private endpoint resolution
+
+
+var dnsprInboundEndpoint = [
+  {
+    name: 'dnspr-${rsPrefix}-in-endpoint'
+    subnetId: '${hubVnet.outputs.resourceId}/subnets/sn-dnspr'
+  }
+
+]
+
+@description('Deploy a Azure DNS resolver')
+module dnsResolver './modules/Microsoft.Network/dnsResolvers/deploy.bicep' = if (deployVPNGateway) { 
+  scope: resourceGroup(resourceGroupNames.networkHubRG.name)
+  name: '${dplPrefix}-dnsResolver'
+  params: {
+    name: 'dnspr-${rsPrefix}'
+    location: location 
+    virtualNetworkId: hubVnet.outputs.resourceId
+    inboundEndpoints: dnsprInboundEndpoint
+    enableDefaultTelemetry: false
+    tags: allTags
+  }
+  dependsOn: [
+    resourceGroups
+    hubVnet
+  ]
+}
+ 
 //------------------------------------------------------------------------------
 // Deploy private DNS Zones Resources
 
