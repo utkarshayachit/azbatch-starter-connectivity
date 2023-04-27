@@ -1,8 +1,9 @@
 # Currently Working On 
 
 
-- Testing not done yet, just checked sussesful deployment in the bicep template
-- Deployed: dns resolver to allow private endpoint resolution when using p2s vpn connectivity. 
+- Define VPN p2s connection with certifcate
+
+
 
 - Design Question: How to allow flexibility in not deploying JumpBox, VpnGw, AzFw but keep the configurations for UDR, NSG etc in the config file?
 
@@ -35,6 +36,9 @@
 - VM Jumpboxes: Win (for Win: can we use a an image version which supports VTMP module?)
 - Initial Cleanup / Cleanup dependencies on other resources after code fix
 - Design Decision: Always create all subnets, nsgs and routes, so no status is needed in config file
+- Deployed: dns resolver to allow private endpoint resolution when using p2s vpn connectivity. 
+- VPN Gateway and private IP resolution - works with conditonal forwarding (tested on MAC OS)
+- Need to agree how to deal with security constratints, like storage account access: only allow from certain VNETS or add (on-prem) local IP  to list of allowed storage accounts?
 
 # Open
 

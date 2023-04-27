@@ -84,7 +84,7 @@ param pdnsZoneConfigBase string = loadTextContent('config/privateDNSzone.json')
 param vmJumpBoxConfig object = loadJsonContent('config/jumpbox.jsonc')
 
 @description('Load the init script of the Linux Jumpbox')
-param vmJumpBoxLinuxInit string = loadTextContent('artefacts/linux-vm-init-script.sh')
+param vmJumpBoxLinuxInit string = loadTextContent('artefacts/cloud-init-linux-jumpbox.txt')
 
 @description('Load diagnostic settings')
 param diagnosticConfig object = loadJsonContent('config/diagnostics.json')
