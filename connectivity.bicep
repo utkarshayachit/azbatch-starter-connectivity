@@ -616,7 +616,7 @@ output azbatchStarter object = {
         {
           group: resourceGroupNames.networkHubRG.name 
           name: hubVnet.outputs.name
-          useGateway: true
+          useGateway: deployVPNGateway
         }
       ]
 
