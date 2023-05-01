@@ -84,7 +84,7 @@ param pdnsZoneConfigBase string = loadTextContent('config/privateDNSzone.json')
 param vmJumpBoxConfig object = loadJsonContent('config/jumpbox.jsonc')
 
 @description('Load the init script of the Linux Jumpbox')
-param vmJumpBoxLinuxInit string = loadTextContent('artefacts/cloud-init-linux-jumpbox.txt')
+param vmJumpBoxLinuxInit string = loadTextContent('artefacts/cloud-init-linux-jumpbox.yaml')
 
 @description('Load diagnostic settings')
 param diagnosticConfig object = loadJsonContent('config/diagnostics.json')
@@ -547,7 +547,7 @@ module windowsJumpBox './modules/Microsoft.Compute/virtualMachines/deploy.bicep'
   params: {
     location: location
     tags: allTags
-    name: vmJumpBoxConfig.windows.vmName
+    name: '${rsPrefix}-${vmJumpBoxConfig.linux.vmNameSuffix}'
     imageReference: vmJumpBoxConfig.windows.imageReference.value
     nicConfigurations: nicConfigurations.windows
     osDisk: vmJumpBoxConfig.windows.osDisk.value

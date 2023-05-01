@@ -1,0 +1,19 @@
+#cloud-config
+package_update: true
+package_upgrade: true
+packages:
+  - nfs-common
+  - jq
+  - python3-pip
+  - wget
+  - curl
+runcmd:
+  - mkdir -p /run/helpers
+  - cd /run/helpers
+  # install azure cli
+  - curl -sL https://aka.ms/InstallAzureCLIDeb -o /run/helpers/init.bash
+  - bash /run/helpers/init.bash
+  # cleanup
+  - rm -rf /run/helpers
+final_message:
+  - 'Virtual Machine initialization complete.'
