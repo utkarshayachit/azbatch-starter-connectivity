@@ -547,7 +547,7 @@ module windowsJumpBox './modules/Microsoft.Compute/virtualMachines/deploy.bicep'
   params: {
     location: location
     tags: allTags
-    name: '${vmJumpBoxConfig.windows.vmName}'
+    name: vmJumpBoxConfig.windows.vmName
     imageReference: vmJumpBoxConfig.windows.imageReference.value
     nicConfigurations: nicConfigurations.windows
     osDisk: vmJumpBoxConfig.windows.osDisk.value
