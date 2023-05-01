@@ -38,7 +38,7 @@
 
 "windows" : {
     "vmSubnet": "sn-jumpbox",   
-    "vmNameSuffix": "vm-windows",
+    "vmName": "vmwin",
     "adminUsername": "localadmin",
     "encryptionAtHost": false,  
     "enableAcceleratedNetworking": true,
