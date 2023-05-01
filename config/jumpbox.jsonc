@@ -38,7 +38,7 @@
 
 "windows" : {
     "vmSubnet": "sn-jumpbox",   
-    "vmNameSuffix": "vmwin",  // make sure this suffix + deployment suffix does not exceed 15 chars
+    "vmName": "dev-jumpbox-win",  // make sure this does not exceed 15 chars
     "adminUsername": "localadmin",
     "encryptionAtHost": false,  
     "enableAcceleratedNetworking": true,
