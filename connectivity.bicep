@@ -524,6 +524,7 @@ module linuxJumpBox './modules/Microsoft.Compute/virtualMachines/deploy.bicep' =
   dependsOn: [
     resourceGroups
     hubVnet
+    azFirewall
   ]
 }
 
@@ -567,6 +568,7 @@ module windowsJumpBox './modules/Microsoft.Compute/virtualMachines/deploy.bicep'
   dependsOn: [
     resourceGroups
     hubVnet
+    azFirewall
   ]
 }
 
