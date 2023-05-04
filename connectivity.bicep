@@ -32,7 +32,7 @@ param suffixSalt string = ''
 param tags object = {}
 
 @description('when true, all resources will be deployed under a single resource-group')
-param useSingleResourceGroup bool = false
+param useSingleResourceGroup bool = true
 
 @description('Log Analytics Service Tier: PerGB2018, Free, Standalone, PerGB or PerNode.')
 @allowed([
@@ -468,6 +468,53 @@ module privateDnsZone './modules/Microsoft.Network/privateDnsZones/deploy.bicep'
 //------------------------------------------------------------------------------
 // Deploy private Hub Jumpboxes
 
+
+@description(' Create a managed identity which will be used to access Azure Resources through az cli on the Jumpboxes')
+module jumpboxManagedIdenity 'modules/Microsoft.ManagedIdentity/userAssignedIdentities/deploy.bicep' = {
+  scope: resourceGroup(resourceGroupNames.connectivityJumpBoxRG.name)
+  name:  '${dplPrefix}-id'
+  params: {
+    name: 'id-${rsPrefix}'
+    location: location  
+    tags: allTags
+  } 
+  dependsOn: [
+    resourceGroups
+  ] 
+}
+
+// Build the Role Assignment Object
+
+var miRoleAssignment = {
+    roleDefinitionIdOrName: 'Contributor'
+    description: 'Contributor Role Assignment'
+    principalIds: [
+      jumpboxManagedIdenity.outputs.principalId
+    ]
+    principalType: 'ServicePrincipal'
+  }
+
+@description(' Assign the role to the managed identity')
+module assignJumpBoxMIRole './modules/Microsoft.ManagedIdentity/userAssignedIdentities/.bicep/nested_roleAssignments.bicep' =  {
+  scope: resourceGroup(resourceGroupNames.connectivityJumpBoxRG.name)
+  name: '${dplPrefix}-UserMSI-Rbac'
+  params: {
+    description: contains(miRoleAssignment , 'description') ? miRoleAssignment.description : ''
+    principalIds: miRoleAssignment.principalIds
+    principalType: contains(miRoleAssignment, 'principalType') ? miRoleAssignment.principalType : ''
+    roleDefinitionIdOrName: miRoleAssignment.roleDefinitionIdOrName
+    resourceId: jumpboxManagedIdenity.outputs.resourceId
+  }
+  dependsOn: [
+    resourceGroups
+    jumpboxManagedIdenity
+  ]
+}
+
+var jumpBoxUserAssignedIdentitiesObject =  {
+  '${jumpboxManagedIdenity.outputs.resourceId}': {}
+}
+
 var jumpboxSubNetId = '${hubVnet.outputs.resourceId}/subnets/${vmJumpBoxConfig.linux.vmSubnet}'
 
 var nicConfigurations = {
@@ -519,12 +566,13 @@ module linuxJumpBox './modules/Microsoft.Compute/virtualMachines/deploy.bicep' =
     enableDefaultTelemetry: false
     diagnosticLogsRetentionInDays: retentionDays
     diagnosticWorkspaceId: logAnalyticsWorkspace.outputs.resourceId
-    
-  } 
+    userAssignedIdentities: jumpBoxUserAssignedIdentitiesObject 
+    }
   dependsOn: [
     resourceGroups
     hubVnet
     azFirewall
+    jumpboxManagedIdenity
   ]
 }
 
@@ -564,11 +612,13 @@ module windowsJumpBox './modules/Microsoft.Compute/virtualMachines/deploy.bicep'
     securityType: contains(vmJumpBoxConfig.windows,'securityType') ? vmJumpBoxConfig.windows.securityType : ''
     vTpmEnabled: contains(vmJumpBoxConfig.windows, 'vTpmEnabled') ? vmJumpBoxConfig.windows.vTpmEnabled : false
     secureBootEnabled: contains(vmJumpBoxConfig.windows, 'secureBootEnabled') ? vmJumpBoxConfig.windows.secureBootEnabled : false
+    userAssignedIdentities: jumpBoxUserAssignedIdentitiesObject 
   } 
   dependsOn: [
     resourceGroups
     hubVnet
     azFirewall
+    jumpboxManagedIdenity
   ]
 }
 
@@ -593,6 +643,12 @@ output azbatchStarter object = {
           appId: appInsights.outputs.applicationId
           instrumentationKey: appInsights.outputs.instrumentationKey
       }
+    }
+
+    managedIdentity: {
+      name: jumpboxManagedIdenity.outputs.name
+      princiaplId: jumpboxManagedIdenity.outputs.principalId
+      resourceId: jumpboxManagedIdenity.outputs.resourceId
     }
 
     network: {
