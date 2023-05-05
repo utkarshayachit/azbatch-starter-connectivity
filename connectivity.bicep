@@ -645,11 +645,10 @@ output azbatchStarter object = {
       }
     }
 
-    managedIdentity: {
+    managedIdentities: [{
       name: jumpboxManagedIdenity.outputs.name
-      princiaplId: jumpboxManagedIdenity.outputs.principalId
-      resourceId: jumpboxManagedIdenity.outputs.resourceId
-    }
+      group: jumpboxManagedIdenity.outputs.resourceGroupName
+    }]
 
     network: {
 
