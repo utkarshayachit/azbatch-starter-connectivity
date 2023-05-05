@@ -61,8 +61,12 @@ param deployWindowsJumpbox bool = true
 @description('deployment timestamp')
 param timestamp string = utcNow('g')
 
+@description('Admin Password of the Jumpboxes')
 @secure()
 param adminPassword string 
+
+@description('Root Certificate to be used for p2s VPN configuration')
+param clientRootCertData string = ''
 
 //------------------------------------------------------------------------------
 // Load exteranl configuration objects
@@ -399,6 +403,8 @@ module vpnGateway './modules/Microsoft.Network/virtualNetworkGateways/deploy.bic
     diagnosticLogsRetentionInDays: retentionDays
     diagnosticMetricsToEnable: enabledMetricsCategories
     diagnosticWorkspaceId: logAnalyticsWorkspace.outputs.resourceId
+    vpnClientAddressPoolPrefix: vpngConfig.vpnClientAddressPoolPrefix
+    clientRootCertData: clientRootCertData
   }
   dependsOn: [
     resourceGroups

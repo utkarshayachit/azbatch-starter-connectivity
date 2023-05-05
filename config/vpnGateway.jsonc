@@ -9,8 +9,7 @@
     "virtualNetworkGatewayType": "Vpn",
     "enableBgp": false,
     "vpnType": "RouteBased",
-    "activeActive": false
-    
-    //"vpnClientAddressPoolPrefix" : "172.16.25.0/24" // Only used if client cert is also provided.... not useful for a generic deployment template
+    "activeActive": false,
+    "vpnClientAddressPoolPrefix" : "172.16.30.0/24" // Only used if client cert is also provided.
 
 }
