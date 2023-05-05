@@ -470,7 +470,7 @@ module privateDnsZone './modules/Microsoft.Network/privateDnsZones/deploy.bicep'
 
 
 @description(' Create a managed identity which will be used to access Azure Resources through az cli on the Jumpboxes')
-module jumpboxManagedIdenity 'modules/Microsoft.ManagedIdentity/userAssignedIdentities/deploy.bicep' = {
+module jumpboxManagedIdentity 'modules/Microsoft.ManagedIdentity/userAssignedIdentities/deploy.bicep' = {
   scope: resourceGroup(resourceGroupNames.connectivityJumpBoxRG.name)
   name:  '${dplPrefix}-id'
   params: {
@@ -489,7 +489,7 @@ var miRoleAssignment = {
     roleDefinitionIdOrName: 'Contributor'
     description: 'Contributor Role Assignment'
     principalIds: [
-      jumpboxManagedIdenity.outputs.principalId
+      jumpboxManagedIdentity.outputs.principalId
     ]
     principalType: 'ServicePrincipal'
   }
@@ -503,16 +503,16 @@ module assignJumpBoxMIRole './modules/Microsoft.ManagedIdentity/userAssignedIden
     principalIds: miRoleAssignment.principalIds
     principalType: contains(miRoleAssignment, 'principalType') ? miRoleAssignment.principalType : ''
     roleDefinitionIdOrName: miRoleAssignment.roleDefinitionIdOrName
-    resourceId: jumpboxManagedIdenity.outputs.resourceId
+    resourceId: jumpboxManagedIdentity.outputs.resourceId
   }
   dependsOn: [
     resourceGroups
-    jumpboxManagedIdenity
+    jumpboxManagedIdentity
   ]
 }
 
 var jumpBoxUserAssignedIdentitiesObject =  {
-  '${jumpboxManagedIdenity.outputs.resourceId}': {}
+  '${jumpboxManagedIdentity.outputs.resourceId}': {}
 }
 
 var jumpboxSubNetId = '${hubVnet.outputs.resourceId}/subnets/${vmJumpBoxConfig.linux.vmSubnet}'
@@ -572,7 +572,7 @@ module linuxJumpBox './modules/Microsoft.Compute/virtualMachines/deploy.bicep' =
     resourceGroups
     hubVnet
     azFirewall
-    jumpboxManagedIdenity
+    jumpboxManagedIdentity
   ]
 }
 
@@ -618,7 +618,7 @@ module windowsJumpBox './modules/Microsoft.Compute/virtualMachines/deploy.bicep'
     resourceGroups
     hubVnet
     azFirewall
-    jumpboxManagedIdenity
+    jumpboxManagedIdentity
   ]
 }
 
@@ -646,8 +646,8 @@ output azbatchStarter object = {
     }
 
     managedIdentities: [{
-      name: jumpboxManagedIdenity.outputs.name
-      group: jumpboxManagedIdenity.outputs.resourceGroupName
+      name: jumpboxManagedIdentity.outputs.name
+      group: jumpboxManagedIdentity.outputs.resourceGroupName
     }]
 
     network: {
