@@ -31,6 +31,3 @@ xxx with / without Bastion, VPN GW, etc.
 Copyright (c) Microsoft Corporation. All rights reserved.
 
 Licensed under the [MIT License](./LICENSE)
-
-[cli]: https://github.com/utkarshayachit/azbatch-starter/tree/main/cli
-[config]: https://github.com/utkarshayachit/azbatch-starter/tree/main/config
