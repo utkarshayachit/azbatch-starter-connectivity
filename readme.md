@@ -20,7 +20,7 @@ This repository is part one of two repositories aming to speed-up the depoloymen
 
 ## Documentation
 
-Latest documentation is hosted on xxx
+Latest documentation is hosted on [Github Pages](https://mocelj.github.io/azbatch-starter-connectivity/).
 
 ## License
 
