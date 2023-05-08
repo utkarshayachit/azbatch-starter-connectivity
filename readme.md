@@ -1,63 +1,29 @@
-# Currently Working On 
+# azbatch-starter-connectivity
 
+> __Warning__
+> This repository is under active development. Expect everything to change until the first version is tagged/released.
 
-- Define VPN p2s connection with certifcate
+[Azure Batch](https://learn.microsoft.com/en-us/azure/batch/batch-technical-overview)
+is a service for running compute intensive workloads on Azure. It provides a managed service for running
+jobs on a pool of compute nodes. The service is designed to be highly scalable and can be used to run jobs that
+require hundreds or thousands of compute nodes. The service is also designed to be highly customizable and can be
+used to run a wide variety of workloads. Getting started with Azure Batch is easy. The service can be used to run jobs
+in a matter of minutes. Getting a proof-of-concept (POC) that demonstrates the value of the service is also easy.
+However, as one moves from a POC to a production deployment, by incorporating best practices and security guidelines,
+the complexity of the deployment invariably increases.
 
+This repository is a part of our accelerator solution to make it easier for customers to deploy **Azure Batch** workloads
+in a manner that follows best practices and security guidelines. When used in conjunction with the Azure Batch starter repository [azbatch-starter](https://github.com/utkarshayachit/azbatch-starter), it can be used to deploy
+a locked down Azure Batch environment, designed for industrial use cases such as those in Financial Services (FSI).
 
+This repository is part one of two repositories aming to speed-up the depoloyment of (secured) Azure Batch, but can also be used to deploy a simplified connectitivty zone for secure sandbox deployments, pilots and similar projects. For a large scale, enterprise ready landing zone, we recommend to follow the guiding principles and recommendations found in the [Cloud Adoption Framework](https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/landing-zone/#platform-vs-application-landing-zones).
 
-- Design Question: How to allow flexibility in not deploying JumpBox, VpnGw, AzFw but keep the configurations for UDR, NSG etc in the config file?
+## Documentation
 
-- Optional Folder: In case we need a ready to be used spoke vnet w/o Azure Batch configuration
+Latest documentation is hosted on xxx
 
+## License
 
-# Already Deployed: 
+Copyright (c) Microsoft Corporation. All rights reserved.
 
-- Resource Groups
-- NSGs, Routes
-- VNet and Subnets
-- Log Analytics Workspace
-- Application Insights
-- pip AzFirewall
-- Azure Firewall
-- pipBastion
-- Azure Bastion
-- VPN Gateway depoloyment
-- Create public IP for VPN Gateway (like for AzFW and Bastion, so we can have the same naming convention) - done?
-- private DNS Zone (link to Hub Vnet)
-- Linux VM Jumpbox
-- Windows VM Jumpbox
-- Verify if Workspace ID is enabled on all resources
-- Propagate diagonstic settings
-- Use diagnostic.json config file
-- Custom Script for Linux Jumpbox not executed? -> possibly wrong datatype for custom data (string expected, not base64) -> solved.
-- 'AzureAsyncOperationWaiting' errors when Bastion and FW are both set to false - only VPNG to true -> solved
-- Solved: if AzFW true and Bastion True, but VPNGW false -> concurracy issue on Gateway Subnet -> error. Not clear, what causes the concurracy race: stopped after both (L,W) Jumpboxes were commented out.... added azFw and azBastion to dependencies
-- Collect all relevant output for Secure Batch Repository (as input)
-- VM Jumpboxes: Win (for Win: can we use a an image version which supports VTMP module?)
-- Initial Cleanup / Cleanup dependencies on other resources after code fix
-- Design Decision: Always create all subnets, nsgs and routes, so no status is needed in config file
-- Deployed: dns resolver to allow private endpoint resolution when using p2s vpn connectivity. 
-- VPN Gateway and private IP resolution - works with conditonal forwarding (tested on MAC OS)
-- Need to agree how to deal with security constratints, like storage account access: only allow from certain VNETS or add (on-prem) local IP  to list of allowed storage accounts?
-
-# Open
-
-- Create a Spoke Network incl. subnets and peering to Hub + link to private DNS? (AzBatch side)
-
-- Review applicationRuleCollection in Azure Firewall
-- Review networkRuleCollection for Spoke to Spoke connectivity
-
-- Implement schema validation?
-- GitHub Auto-Testing
-
-# Nice to Have: 
-
-
-- VM Jumpbox: Can we apply a DSC config? -> allow RDP to Windows Images (in case we want to domain join them)
-
-# Known Issues 
-
-to feedback to Libs Team:
-
--> might be related to LibModule for VNets -> added batchsize(1) annotation to force the for loop to execute 1 subnet at the time
--> file PR for custom extension: CodeToExecute was not part of the final parameter set.
+Licensed under the [MIT License](./LICENSE)
