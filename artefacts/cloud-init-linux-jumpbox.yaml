@@ -8,6 +8,7 @@ packages:
   - python3-venv
   - wget
   - curl
+  - cmake
 runcmd:
   - mkdir -p /run/helpers
   - cd /run/helpers
